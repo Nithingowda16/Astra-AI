@@ -13,7 +13,14 @@
   <a href="#system-architecture">Architecture</a> •
   <a href="#quickstart">Quickstart</a> •
   <a href="#neural-copilot-engine">Neural Copilot</a> •
-  <a href="#tech-stack">Tech Stack</a>
+  <a href="#tech-stack">Tech Stack</a> •
+  <a href="https://app.snowflake.com/streamlit/hdmwnml/pl45989/#/apps/qvozr5zbldf6ssazexoa"><strong>Live Snowflake App</strong></a>
+</p>
+
+<p align="center">
+  <a href="https://app.snowflake.com/streamlit/hdmwnml/pl45989/#/apps/qvozr5zbldf6ssazexoa">
+    <img src="https://img.shields.io/badge/Snowflake-Deployed%20Live-29B5E8?style=for-the-badge&logo=snowflake&logoColor=white" alt="Snowflake Live App" />
+  </a>
 </p>
 
 ---
