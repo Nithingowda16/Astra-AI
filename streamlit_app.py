@@ -375,50 +375,65 @@ apple_css = f"""
         color: #ffffff !important;
     }}
 
-    /* Sidebar iOS Theme Toggle Switch (macOS Settings Row) */
-    [data-testid="stSidebar"] [data-testid="stToggle"] {{
+    /* Sidebar iOS Theme Toggle Card Row */
+    [data-testid="stSidebar"] div[data-testid="stToggle"],
+    [data-testid="stSidebar"] div.stToggle,
+    [data-testid="stSidebar"] div[data-testid="stCheckbox"] {{
         width: 100% !important;
-        display: flex !important;
-        justify-content: space-between !important;
-        align-items: center !important;
-        padding: 8px 12px !important;
         background: var(--apple-card) !important;
         border: 1px solid var(--apple-border) !important;
         border-radius: 10px !important;
+        padding: 9px 14px !important;
         margin-top: 6px !important;
         margin-bottom: 6px !important;
         box-sizing: border-box !important;
         box-shadow: 0 1px 3px rgba(0, 0, 0, 0.02) !important;
+        display: flex !important;
+        align-items: center !important;
     }}
-    [data-testid="stSidebar"] [data-testid="stToggle"] label {{
+    [data-testid="stSidebar"] div[data-testid="stToggle"] label,
+    [data-testid="stSidebar"] div.stToggle label,
+    [data-testid="stSidebar"] div[data-testid="stCheckbox"] label {{
         width: 100% !important;
         display: flex !important;
-        justify-content: space-between !important;
         align-items: center !important;
-        flex-direction: row-reverse !important;
-        font-size: 0.82rem !important;
-        font-weight: 600 !important;
-        color: var(--apple-text-primary) !important;
+        justify-content: space-between !important;
         cursor: pointer !important;
         margin: 0 !important;
+        padding: 0 !important;
     }}
-    [data-testid="stSidebar"] [data-testid="stToggle"] label p {{
+    [data-testid="stSidebar"] div[data-testid="stToggle"] label div[data-baseweb="checkbox"],
+    [data-testid="stSidebar"] div.stToggle label div[data-baseweb="checkbox"],
+    [data-testid="stSidebar"] div[data-testid="stCheckbox"] label div[data-baseweb="checkbox"] {{
+        order: 2 !important;
+        margin-left: auto !important;
+        margin-right: 0 !important;
+    }}
+    [data-testid="stSidebar"] div[data-testid="stToggle"] label > div:not([data-baseweb="checkbox"]),
+    [data-testid="stSidebar"] div.stToggle label > div:not([data-baseweb="checkbox"]),
+    [data-testid="stSidebar"] div[data-testid="stCheckbox"] label > div:not([data-baseweb="checkbox"]) {{
+        order: 1 !important;
+    }}
+    [data-testid="stSidebar"] div[data-testid="stToggle"] label p,
+    [data-testid="stSidebar"] div.stToggle label p,
+    [data-testid="stSidebar"] div[data-testid="stCheckbox"] label p {{
         font-size: 0.82rem !important;
         font-weight: 600 !important;
         color: var(--apple-text-primary) !important;
         margin: 0 !important;
+        order: 1 !important;
     }}
 
-    /* Sign Out Action Button in Sidebar */
+    /* Sign Out Action Button in Sidebar (Apple Soft Red Action) */
     [data-testid="stSidebar"] [data-testid="stVerticalBlock"] > div:last-child button,
     [data-testid="stSidebar"] button[key="sidebar_logout_btn"],
     button[key="sidebar_logout_btn"] {{
-        background: transparent !important;
-        background-color: transparent !important;
-        border: 1px solid rgba(255, 59, 48, 0.28) !important;
+        background: rgba(255, 59, 48, 0.06) !important;
+        background-color: rgba(255, 59, 48, 0.06) !important;
+        border: 1px solid rgba(255, 59, 48, 0.22) !important;
         color: #ff3b30 !important;
-        border-radius: 8px !important;
-        padding: 7px 12px !important;
+        border-radius: 10px !important;
+        padding: 8px 14px !important;
         font-size: 0.82rem !important;
         font-weight: 600 !important;
         text-align: center !important;
@@ -426,6 +441,7 @@ apple_css = f"""
         margin-top: 4px !important;
         margin-bottom: 12px !important;
         box-shadow: none !important;
+        width: 100% !important;
         transition: all 0.15s ease !important;
     }}
     [data-testid="stSidebar"] [data-testid="stVerticalBlock"] > div:last-child button p,
@@ -437,11 +453,11 @@ apple_css = f"""
     }}
     [data-testid="stSidebar"] [data-testid="stVerticalBlock"] > div:last-child button:hover,
     button[key="sidebar_logout_btn"]:hover {{
-        background: rgba(255, 59, 48, 0.08) !important;
-        background-color: rgba(255, 59, 48, 0.08) !important;
+        background: rgba(255, 59, 48, 0.12) !important;
+        background-color: rgba(255, 59, 48, 0.12) !important;
         border-color: #ff3b30 !important;
         color: #ff3b30 !important;
-        transform: none !important;
+        transform: translateY(-1px) !important;
     }}
     [data-testid="stSidebar"] [data-testid="stVerticalBlock"] > div:last-child button:hover p,
     button[key="sidebar_logout_btn"]:hover p {{
@@ -725,34 +741,38 @@ with st.sidebar:
         st.session_state.active_nav = "Copilot"
         st.rerun()
 
-    # User Profile Box (macOS / Apple Identity Card)
-    raw_user_name = getattr(st.session_state, "user_name", "Senior Risk Officer")
+    # User Profile Box (Apple macOS Identity Card)
+    raw_user_name = getattr(st.session_state, "user_name", "Risk Officer")
     raw_user_role = getattr(st.session_state, "user_role", "Senior Risk Officer")
     
-    # Avoid repeating the exact same text if name equals role
-    if raw_user_name == raw_user_role or not raw_user_name or raw_user_name == "Senior Risk Officer":
-        display_name = "Alexander Wright"
+    # Concise name that fits comfortably without truncation in narrow sidebars
+    if not raw_user_name or raw_user_name in ["Senior Risk Officer", "Alexander Wright"]:
+        display_name = "Alex Wright"
         display_role = "Senior Risk Officer"
     else:
-        display_name = raw_user_name
+        parts = raw_user_name.split()
+        if len(parts) > 1 and len(raw_user_name) > 13:
+            display_name = f"{parts[0]} {parts[1][0]}."
+        else:
+            display_name = raw_user_name
         display_role = raw_user_role
         
-    initials = "".join([part[0] for part in display_name.split()[:2]]).upper() if display_name else "RO"
+    initials = "".join([part[0] for part in display_name.split()[:2]]).upper() if display_name else "AW"
     
     render_html(f"""
-    <div style="background: var(--apple-card); border: 1px solid var(--apple-border); border-radius: 12px; padding: 12px 14px; margin-top: 24px; margin-bottom: 8px; box-shadow: 0 1px 3px rgba(0,0,0,0.03);">
+    <div style="background: var(--apple-card); border: 1px solid var(--apple-border); border-radius: 12px; padding: 12px 14px; margin-top: 22px; margin-bottom: 6px; box-shadow: 0 1px 3px rgba(0,0,0,0.03);">
         <div style="display: flex; align-items: center; gap: 10px;">
-            <div style="width: 32px; height: 32px; border-radius: 50%; background: rgba(0, 113, 227, 0.12); color: var(--apple-blue); display: flex; align-items: center; justify-content: center; font-size: 0.75rem; font-weight: 700; flex-shrink: 0;">
+            <div style="width: 34px; height: 34px; border-radius: 50%; background: linear-gradient(135deg, #0071e3, #409cff); color: #ffffff; display: flex; align-items: center; justify-content: center; font-size: 0.78rem; font-weight: 700; flex-shrink: 0; box-shadow: 0 2px 6px rgba(0, 113, 227, 0.28);">
                 {initials}
             </div>
             <div style="min-width: 0; flex: 1;">
-                <div style="font-size: 0.82rem; font-weight: 700; color: var(--apple-text-primary); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; line-height: 1.2;">{display_name}</div>
+                <div style="font-size: 0.84rem; font-weight: 700; color: var(--apple-text-primary); line-height: 1.2;">{display_name}</div>
                 <div style="font-size: 0.7rem; color: var(--apple-text-muted); margin-top: 2px; line-height: 1.2;">{display_role}</div>
             </div>
         </div>
-        <div style="margin-top: 9px; padding-top: 8px; border-top: 1px solid var(--apple-border-subtle); display: flex; align-items: center; justify-content: space-between;">
-            <span style="font-size: 0.6rem; font-weight: 800; background: rgba(52, 199, 89, 0.12); color: var(--apple-green); padding: 2px 7px; border-radius: 5px; letter-spacing: 0.04em;">ANALYST VERIFIED</span>
-            <span style="font-size: 0.62rem; color: var(--apple-text-muted); font-weight: 600;">TIER 1 AML</span>
+        <div style="margin-top: 9px; padding-top: 8px; border-top: 1px solid var(--apple-border-subtle); display: flex; align-items: center; gap: 6px;">
+            <span style="display: inline-block; width: 6px; height: 6px; border-radius: 50%; background: #34c759; box-shadow: 0 0 6px rgba(52, 199, 89, 0.6); flex-shrink: 0;"></span>
+            <span style="font-size: 0.68rem; font-weight: 600; color: var(--apple-green); letter-spacing: 0.02em;">Verified AML Analyst</span>
         </div>
     </div>
     """)
