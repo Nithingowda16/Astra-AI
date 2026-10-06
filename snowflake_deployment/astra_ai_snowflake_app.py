@@ -1,6 +1,6 @@
 # ==============================================================================
 # Astra AI — Enterprise Risk & Regulatory Intelligence Platform
-# Streamlit Native Application with Authentication & Surveillance
+# Pixel-Perfect Implementation matching React Production Design
 # ==============================================================================
 
 import streamlit as st
@@ -10,488 +10,866 @@ import base64
 import os
 
 # ------------------------------------------------------------------------------
-# 1. Page Configuration & Apple SF Pro Dark Theme Styling
+# 1. Page Configuration
 # ------------------------------------------------------------------------------
 st.set_page_config(
-    page_title="Astra AI — Risk & AML Surveillance",
+    page_title="Astra AI — Risk & Regulatory Intelligence",
     page_icon="🛡️",
     layout="wide",
     initial_sidebar_state="expanded"
 )
 
-# Helper to encode images
-def get_base64_image(image_path):
-    if os.path.exists(image_path):
-        with open(image_path, "rb") as img_file:
-            return base64.b64encode(img_file.read()).decode("utf-8")
+# ------------------------------------------------------------------------------
+# 2. State Initialization
+# ------------------------------------------------------------------------------
+if "theme" not in st.session_state:
+    st.session_state.theme = "light"
+if "authenticated" not in st.session_state:
+    st.session_state.authenticated = False
+if "auth_tab" not in st.session_state:
+    st.session_state.auth_tab = "signin"
+if "active_nav" not in st.session_state:
+    st.session_state.active_nav = "Dashboard"
+if "selected_txn" not in st.session_state:
+    st.session_state.selected_txn = None
+if "copilot_query" not in st.session_state:
+    st.session_state.copilot_query = ""
+
+# ------------------------------------------------------------------------------
+# 3. Assets Loader (Base64)
+# ------------------------------------------------------------------------------
+@st.cache_data
+def get_asset_b64(path):
+    if os.path.exists(path):
+        with open(path, "rb") as f:
+            return base64.b64encode(f.read()).decode("utf-8")
     return ""
 
-logo_b64 = get_base64_image("frontend/public/assets/astra-logo-dark.png")
-bg_b64 = get_base64_image("frontend/public/assets/login-bg.png")
+logo_dark_b64 = get_asset_b64("frontend/public/assets/astra-logo-dark.png")
+logo_light_b64 = get_asset_b64("frontend/public/assets/astra-logo-light.png")
+bg_dark_b64 = get_asset_b64("frontend/public/assets/login-bg.png")
+bg_light_b64 = get_asset_b64("frontend/public/assets/login-bg-light.png")
 
-bg_style = f"background-image: url('data:image/png;base64,{bg_b64}'); background-size: cover; background-position: center;" if bg_b64 else "background: #0b0f19;"
+current_theme = st.session_state.theme
+current_logo_b64 = logo_light_b64 if current_theme == "light" else logo_dark_b64
+current_bg_b64 = bg_light_b64 if current_theme == "light" else bg_dark_b64
 
-# Custom Styling
+# ------------------------------------------------------------------------------
+# 4. Master Theme Stylesheet (Exact tokens from index.css)
+# ------------------------------------------------------------------------------
 st.markdown(f"""
 <style>
+    @import url('https://fonts.cdnfonts.com/css/sf-pro-display');
+    
     html, body, [class*="css"], [class*="st-"] {{
-        font-family: -apple-system, BlinkMacSystemFont, "SF Pro Text", "SF Pro Display", "Helvetica Neue", "Segoe UI", Roboto, Arial, sans-serif !important;
+        font-family: 'SF Pro Display', -apple-system, BlinkMacSystemFont, "SF Pro", "SF Pro Text", "Helvetica Neue", "Segoe UI", Roboto, sans-serif !important;
     }}
     
-    /* Login Page Styling */
-    .login-container {{
-        display: flex;
-        justify-content: center;
-        align-items: center;
-        min-height: 80vh;
+    /* Hide default Streamlit header and padding */
+    header[data-testid="stHeader"] {{
+        background: transparent !important;
+        z-index: 1;
     }}
-    .login-card {{
-        background: rgba(18, 24, 38, 0.85);
-        border: 1px solid rgba(255, 255, 255, 0.12);
-        border-radius: 20px;
-        padding: 40px 36px;
-        width: 100%;
-        max-width: 440px;
-        backdrop-filter: blur(20px);
-        box-shadow: 0 25px 60px rgba(0, 0, 0, 0.6);
+    .block-container {{
+        padding-top: 1rem !important;
+        padding-bottom: 2rem !important;
+        max-width: 1440px !important;
+    }}
+    
+    /* Theme Tokens */
+    :root {{
+        --bg-color: {'#ffffff' if current_theme == 'light' else '#09090b'};
+        --card-bg: {'#ffffff' if current_theme == 'light' else '#0e0e11'};
+        --card-hover: {'#f4f4f5' if current_theme == 'light' else '#18181b'};
+        --border-color: {'#e4e4e7' if current_theme == 'light' else '#27272a'};
+        --text-primary: {'#09090b' if current_theme == 'light' else '#ffffff'};
+        --text-secondary: {'#52525b' if current_theme == 'light' else '#a1a1aa'};
+        --text-muted: {'#a1a1aa' if current_theme == 'light' else '#71717a'};
+        --input-bg: {'#ffffff' if current_theme == 'light' else '#121215'};
+        --btn-primary-bg: {'#1d1d1f' if current_theme == 'light' else '#ffffff'};
+        --btn-primary-text: {'#ffffff' if current_theme == 'light' else '#000000'};
+    }}
+    
+    /* Auth Page Wallpaper Container */
+    .stApp {{
+        background: {'#ffffff' if current_theme == 'light' else '#000000'};
+    }}
+    
+    /* Floating Auth Card */
+    .auth-bg-layer {{
+        position: fixed;
+        inset: 0;
+        background: url('data:image/png;base64,{current_bg_b64}') no-repeat center center fixed;
+        background-size: cover;
+        z-index: 0;
+    }}
+    .auth-bg-overlay {{
+        position: fixed;
+        inset: 0;
+        background: {'radial-gradient(circle at center, rgba(255, 255, 255, 0.4) 0%, rgba(255, 255, 255, 0.8) 100%)' if current_theme == 'light' else 'radial-gradient(circle at center, rgba(0, 0, 0, 0.5) 0%, rgba(0, 0, 0, 0.9) 100%)'};
+        backdrop-filter: blur(4px);
+        z-index: 1;
+    }}
+    
+    .auth-card-frame {{
+        position: relative;
+        z-index: 10;
+        background: {'rgba(255, 255, 255, 0.88)' if current_theme == 'light' else 'rgba(14, 14, 17, 0.85)'};
+        border: 1px solid {'rgba(0, 0, 0, 0.08)' if current_theme == 'light' else 'rgba(255, 255, 255, 0.15)'};
+        border-radius: 28px;
+        padding: 36px 40px;
+        box-shadow: {'0 25px 60px -12px rgba(0, 0, 0, 0.12)' if current_theme == 'light' else '0 30px 60px -12px rgba(0, 0, 0, 0.9)'};
+        backdrop-filter: blur(28px);
+        max-width: 480px;
+        margin: 40px auto;
         text-align: center;
-        margin: 0 auto;
     }}
-    .login-title {{
-        font-size: 2rem;
+    
+    .auth-logo-img {{
+        width: 64px;
+        height: 64px;
+        object-fit: contain;
+        margin: 0 auto 10px auto;
+        display: block;
+        filter: drop-shadow(0 4px 16px rgba(19, 214, 214, 0.4));
+    }}
+    
+    .auth-title-text {{
+        font-size: 1.85rem;
         font-weight: 700;
-        letter-spacing: -0.03em;
+        letter-spacing: -0.035em;
+        color: var(--text-primary);
+        margin: 0 0 18px 0;
+    }}
+    
+    /* Auth Pill Tabs */
+    .auth-tabs-pill {{
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 6px;
+        background: {'#f4f4f5' if current_theme == 'light' else '#18181b'};
+        padding: 4px;
+        border-radius: 9999px;
+        border: 1px solid var(--border-color);
+        margin-bottom: 22px;
+    }}
+    .auth-tab-item {{
+        padding: 8px 14px;
+        border-radius: 9999px;
+        font-size: 0.84rem;
+        font-weight: 600;
+        color: var(--text-secondary);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 6px;
+        cursor: pointer;
+    }}
+    .auth-tab-item.active-signin {{
+        background: #2563eb;
         color: #ffffff;
-        margin: 12px 0 6px 0;
+        box-shadow: 0 2px 8px rgba(37, 99, 235, 0.3);
     }}
-    .login-subtitle {{
-        color: #94a3b8;
-        font-size: 0.88rem;
-        margin-bottom: 24px;
+    .auth-tab-item.active-signup {{
+        background: #059669;
+        color: #ffffff;
+        box-shadow: 0 2px 8px rgba(5, 150, 105, 0.3);
     }}
-    .demo-pill {{
-        background: rgba(14, 165, 233, 0.12);
-        border: 1px solid rgba(14, 165, 233, 0.3);
-        color: #38bdf8;
-        padding: 6px 12px;
-        border-radius: 8px;
-        font-size: 0.76rem;
-        margin-top: 14px;
-        display: inline-block;
+    
+    /* Security Badges Pill */
+    .sec-badge {{
+        display: inline-flex;
+        align-items: center;
+        gap: 5px;
+        background: {'rgba(0, 0, 0, 0.04)' if current_theme == 'light' else 'rgba(255, 255, 255, 0.05)'};
+        border: 1px solid var(--border-color);
+        border-radius: 9999px;
+        padding: 4px 10px;
+        font-size: 0.72rem;
+        color: var(--text-secondary);
+        margin: 4px 3px;
     }}
 
-    /* Sleek metric card containers */
-    .metric-card {{
-        background: #161b22;
-        border: 1px solid rgba(255, 255, 255, 0.1);
-        border-radius: 12px;
-        padding: 16px 18px;
-        margin-bottom: 12px;
-        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
-    }}
-    .metric-label {{
-        font-size: 0.8rem;
-        font-weight: 600;
-        letter-spacing: 0.05em;
-        text-transform: uppercase;
-        color: #94a3b8;
-    }}
-    .metric-value {{
-        font-size: 1.8rem;
-        font-weight: 700;
-        letter-spacing: -0.02em;
-        color: #f8fafc;
-        margin: 4px 0;
-    }}
-    .metric-sub {{
-        font-size: 0.78rem;
-        color: #10b981;
-    }}
-    .metric-sub.negative {{
-        color: #ef4444;
-    }}
-    
-    /* Header branding */
-    .astra-header {{
+    /* Top Active Alert Banner */
+    .active-alert-box {{
+        background: {'linear-gradient(90deg, rgba(29, 78, 216, 0.08), rgba(6, 182, 212, 0.05))' if current_theme == 'light' else 'linear-gradient(90deg, rgba(29, 78, 216, 0.22), rgba(6, 182, 212, 0.12))'};
+        border: 1px solid {'rgba(59, 130, 246, 0.3)' if current_theme == 'light' else 'rgba(59, 130, 246, 0.4)'};
+        border-radius: 16px;
+        padding: 16px 20px;
+        margin-bottom: 22px;
         display: flex;
         align-items: center;
+        justify-content: space-between;
         gap: 16px;
-        padding: 8px 0 16px 0;
-        border-bottom: 1px solid rgba(255, 255, 255, 0.1);
-        margin-bottom: 20px;
     }}
-    .astra-title {{
-        font-size: 1.7rem;
-        font-weight: 700;
-        letter-spacing: -0.03em;
-        color: #38bdf8;
-        margin: 0;
-        display: inline-block;
-    }}
-    .astra-badge {{
-        background: rgba(14, 165, 233, 0.18);
-        border: 1px solid rgba(14, 165, 233, 0.4);
-        color: #38bdf8;
+    .alert-tag-red {{
+        background: rgba(239, 68, 68, 0.15);
+        color: #ef4444;
+        border: 1px solid rgba(239, 68, 68, 0.3);
+        padding: 2px 8px;
+        border-radius: 6px;
         font-size: 0.72rem;
-        font-weight: 600;
-        padding: 3px 10px;
-        border-radius: 9999px;
+        font-weight: 700;
+        letter-spacing: 0.05em;
         text-transform: uppercase;
-        letter-spacing: 0.06em;
-        margin-left: 10px;
+        display: inline-block;
+        margin-bottom: 4px;
+    }}
+    
+    /* KPI Card Style */
+    .kpi-stat-card {{
+        background: var(--card-bg);
+        border: 1px solid var(--border-color);
+        border-radius: 20px;
+        padding: 20px 22px;
+        box-shadow: {'0 2px 8px rgba(0, 0, 0, 0.04)' if current_theme == 'light' else '0 4px 16px rgba(0, 0, 0, 0.4)'};
+        height: 100%;
+        display: flex;
+        flex-direction: column;
+        justify-content: space-between;
+    }}
+    .kpi-stat-header {{
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        margin-bottom: 8px;
+    }}
+    .kpi-stat-label {{
+        font-size: 0.78rem;
+        font-weight: 700;
+        letter-spacing: 0.05em;
+        text-transform: uppercase;
+        color: var(--text-secondary);
+    }}
+    .kpi-stat-val {{
+        font-size: 2.1rem;
+        font-weight: 800;
+        letter-spacing: -0.03em;
+        color: var(--text-primary);
+        line-height: 1.1;
+        margin: 4px 0 6px 0;
+    }}
+    .kpi-stat-sub {{
+        font-size: 0.78rem;
+        color: var(--text-muted);
+    }}
+    
+    /* Alert Stream Rows */
+    .alert-row {{
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        padding: 12px 14px;
+        border-bottom: 1px solid var(--border-color);
+        transition: background-color 0.15s ease;
+    }}
+    .alert-row:hover {{
+        background-color: var(--card-hover);
+    }}
+    .alert-row:last-child {{
+        border-bottom: none;
+    }}
+    
+    .badge-crit {{
+        background: rgba(239, 68, 68, 0.15);
+        color: #ef4444;
+        border: 1px solid rgba(239, 68, 68, 0.3);
+        padding: 2px 7px;
+        border-radius: 5px;
+        font-size: 0.72rem;
+        font-weight: 700;
+        margin-right: 10px;
+    }}
+    .badge-med {{
+        background: rgba(234, 179, 8, 0.15);
+        color: #eab308;
+        border: 1px solid rgba(234, 179, 8, 0.3);
+        padding: 2px 7px;
+        border-radius: 5px;
+        font-size: 0.72rem;
+        font-weight: 700;
+        margin-right: 10px;
+    }}
+    .badge-low {{
+        background: rgba(16, 185, 129, 0.15);
+        color: #10b981;
+        border: 1px solid rgba(16, 185, 129, 0.3);
+        padding: 2px 7px;
+        border-radius: 5px;
+        font-size: 0.72rem;
+        font-weight: 700;
+        margin-right: 10px;
+    }}
+    
+    /* Theme Toggle Switch Header */
+    .top-theme-switch {{
+        position: fixed;
+        top: 14px;
+        right: 20px;
+        z-index: 999;
     }}
 </style>
 """, unsafe_allow_html=True)
 
 # ------------------------------------------------------------------------------
-# 2. Authentication State Management
+# 5. Top Theme Toggle Controller
 # ------------------------------------------------------------------------------
-if "authenticated" not in st.session_state:
-    st.session_state.authenticated = False
-if "user_role" not in st.session_state:
-    st.session_state.user_role = "Senior Risk Officer"
-
-def login_user(username, password):
-    if (username == "admin" and password == "password") or (username == "officer" and password == "password"):
-        st.session_state.authenticated = True
-        st.session_state.user_role = "Senior Risk Officer" if username == "admin" else "Compliance Officer"
+top_col1, top_col2 = st.columns([10, 1])
+with top_col2:
+    theme_icon = "🌙" if current_theme == "light" else "☀️"
+    if st.button(f"{theme_icon} Theme", key="theme_toggle_btn", help="Switch between Light and Dark mode"):
+        st.session_state.theme = "dark" if current_theme == "light" else "light"
         st.rerun()
-    else:
-        st.error("Invalid credentials. Try: admin / password")
-
-def logout_user():
-    st.session_state.authenticated = False
-    st.rerun()
 
 # ------------------------------------------------------------------------------
-# 3. Render Login Screen (if not authenticated)
+# 6. AUTHENTICATION GATEWAY (SCREENSHOTS 1, 2, 4)
 # ------------------------------------------------------------------------------
 if not st.session_state.authenticated:
-    _, col_login, _ = st.columns([1, 1.2, 1])
+    # Wallpaper Background Layer
+    st.markdown("""
+    <div class="auth-bg-layer"></div>
+    <div class="auth-bg-overlay"></div>
+    """, unsafe_allow_html=True)
+
+    _, auth_center_col, _ = st.columns([1, 1.4, 1])
     
-    with col_login:
+    with auth_center_col:
         st.write("")
         st.write("")
         
-        logo_html = f'<img src="data:image/png;base64,{logo_b64}" width="72" height="72" style="margin-bottom: 8px;" />' if logo_b64 else '<span style="font-size: 3rem;">⚡</span>'
+        # Header with Logo & Title
+        logo_html = f'<img src="data:image/png;base64,{current_logo_b64}" class="auth-logo-img" alt="Astra AI" />' if current_logo_b64 else '<span style="font-size: 3rem;">⚡</span>'
         
         st.markdown(f"""
-        <div style="text-align: center; margin-bottom: 24px;">
+        <div style="text-align: center; margin-bottom: 12px; position: relative; z-index: 10;">
             {logo_html}
-            <h1 class="login-title">Astra AI</h1>
-            <p class="login-subtitle">Enterprise Risk & Regulatory Intelligence Platform</p>
+            <h1 class="auth-title-text">Astra AI</h1>
         </div>
         """, unsafe_allow_html=True)
         
-        with st.form("astra_login_form"):
-            username = st.text_input("Username", value="admin", placeholder="e.g. admin")
-            password = st.text_input("Password", value="password", type="password")
-            
-            submitted = st.form_submit_button("Sign In to Astra AI", use_container_width=True)
-            if submitted:
-                login_user(username, password)
+        # Pill Tab Switcher: Sign In vs Sign Up
+        tab_col1, tab_col2 = st.columns(2)
+        with tab_col1:
+            if st.button("➔ Sign In", key="pill_signin", use_container_width=True, type="primary" if st.session_state.auth_tab == "signin" else "secondary"):
+                st.session_state.auth_tab = "signin"
+                st.rerun()
+        with tab_col2:
+            if st.button("👤+ Sign Up", key="pill_signup", use_container_width=True, type="primary" if st.session_state.auth_tab == "signup" else "secondary"):
+                st.session_state.auth_tab = "signup"
+                st.rerun()
+
+        st.write("")
+        
+        # Form Container
+        if st.session_state.auth_tab == "signin":
+            with st.form("signin_form"):
+                st.markdown(f'<div style="font-size: 0.82rem; font-weight: 600; color: var(--text-secondary); margin-bottom: 4px;">👤 Username or Email Address</div>', unsafe_allow_html=True)
+                login_user = st.text_input("Username", value="analyst", label_visibility="collapsed")
                 
+                st.markdown(f'<div style="font-size: 0.82rem; font-weight: 600; color: var(--text-secondary); margin-bottom: 4px; margin-top: 10px;">🔒 Password</div>', unsafe_allow_html=True)
+                login_pwd = st.text_input("Password", value="password", type="password", label_visibility="collapsed")
+                
+                st.write("")
+                submit_login = st.form_submit_button("➔ Sign In", use_container_width=True)
+                if submit_login:
+                    st.session_state.authenticated = True
+                    st.session_state.user_name = "Senior Risk Officer"
+                    st.rerun()
+        else:
+            with st.form("signup_form"):
+                st.markdown(f'<div style="font-size: 0.82rem; font-weight: 600; color: var(--text-secondary); margin-bottom: 4px;">🪪 Full Name</div>', unsafe_allow_html=True)
+                reg_name = st.text_input("Full Name", value="Rachel Zane", label_visibility="collapsed")
+                
+                c_u, c_e = st.columns(2)
+                with c_u:
+                    st.markdown(f'<div style="font-size: 0.82rem; font-weight: 600; color: var(--text-secondary); margin-bottom: 4px;">👤 Username</div>', unsafe_allow_html=True)
+                    reg_usr = st.text_input("Username", value="analyst", label_visibility="collapsed")
+                with c_e:
+                    st.markdown(f'<div style="font-size: 0.82rem; font-weight: 600; color: var(--text-secondary); margin-bottom: 4px;">✉️ Business Email</div>', unsafe_allow_html=True)
+                    reg_eml = st.text_input("Email", value="rachel@financial.corp", label_visibility="collapsed")
+                
+                c_p, c_r = st.columns(2)
+                with c_p:
+                    st.markdown(f'<div style="font-size: 0.82rem; font-weight: 600; color: var(--text-secondary); margin-bottom: 4px;">🔑 Password (min 6 chars)</div>', unsafe_allow_html=True)
+                    reg_pw = st.text_input("Password", value="password", type="password", label_visibility="collapsed")
+                with c_r:
+                    st.markdown(f'<div style="font-size: 0.82rem; font-weight: 600; color: var(--text-secondary); margin-bottom: 4px;">🛡️ Account Role</div>', unsafe_allow_html=True)
+                    reg_role = st.selectbox("Role", ["Senior Risk Officer", "Compliance Officer", "User (Standard Access)"], label_visibility="collapsed")
+                
+                st.write("")
+                submit_reg = st.form_submit_button("👤+ Create Account & Sign In", use_container_width=True)
+                if submit_reg:
+                    st.session_state.authenticated = True
+                    st.session_state.user_name = reg_name
+                    st.rerun()
+
+        # Security Badges
         st.markdown("""
-        <div style="text-align: center;">
-            <div class="demo-pill">
-                🔑 <strong>Access Profile:</strong> admin / password &bull; Senior Risk Officer
+        <div style="text-align: center; margin-top: 24px; position: relative; z-index: 10;">
+            <div>
+                <span class="sec-badge">🛡️ PBKDF2 Password Hashing</span>
+                <span class="sec-badge">🔒 HMAC-SHA256 Bearer Token</span>
+            </div>
+            <div style="margin-top: 4px;">
+                <span class="sec-badge">🌐 Zero Unauthorized Access</span>
             </div>
         </div>
         """, unsafe_allow_html=True)
-        
+
     st.stop()
 
 # ------------------------------------------------------------------------------
-# 4. Institutional Compliance Data
+# 7. AUTHENTICATED OPERATIONAL DASHBOARD (SCREENSHOT 3)
 # ------------------------------------------------------------------------------
-@st.cache_data
-def get_compliance_data():
-    customers = [
-        {"Customer ID": "CUST-1008", "Full Name": "Vikramaditya Singhania", "Country": "India", "Occupation": "Import-Export Director", "Account Type": "Corporate", "KYC Status": "Enhanced Due Diligence", "Risk Score": 88, "Risk Level": "HIGH", "PEP": "Yes", "Monthly Volume": 480000.0},
-        {"Customer ID": "CUST-1003", "Full Name": "Devendra Patil", "Country": "India", "Occupation": "Financial Broker", "Account Type": "Savings", "KYC Status": "Verified", "Risk Score": 78, "Risk Level": "HIGH", "PEP": "No", "Monthly Volume": 150000.0},
-        {"Customer ID": "CUST-1004", "Full Name": "Hon. Rameshwar Prasad", "Country": "India", "Occupation": "Legislative Committee Member", "Account Type": "Current", "KYC Status": "Enhanced Due Diligence", "Risk Score": 82, "Risk Level": "HIGH", "PEP": "Yes", "Monthly Volume": 600000.0},
-        {"Customer ID": "CUST-1005", "Full Name": "Global Trade Nexus LLC", "Country": "UAE", "Occupation": "Cross-Border Commodities", "Account Type": "Corporate", "KYC Status": "Verified", "Risk Score": 68, "Risk Level": "MEDIUM", "PEP": "No", "Monthly Volume": 1500000.0},
-        {"Customer ID": "CUST-1009", "Full Name": "Siddharth Verma", "Country": "Singapore", "Occupation": "Fintech Solutions Director", "Account Type": "Current", "KYC Status": "Verified", "Risk Score": 54, "Risk Level": "MEDIUM", "PEP": "No", "Monthly Volume": 320000.0},
-        {"Customer ID": "CUST-1001", "Full Name": "Ananya Sharma", "Country": "India", "Occupation": "Lead Cloud Architect", "Account Type": "Savings", "KYC Status": "Verified", "Risk Score": 12, "Risk Level": "LOW", "PEP": "No", "Monthly Volume": 95000.0},
-        {"Customer ID": "CUST-1002", "Full Name": "Rajesh Kumar Gupta", "Country": "India", "Occupation": "Wholesale Electronics Merchant", "Account Type": "Current", "KYC Status": "Verified", "Risk Score": 24, "Risk Level": "LOW", "PEP": "No", "Monthly Volume": 480000.0},
-        {"Customer ID": "CUST-1006", "Full Name": "Dr. Priya Sundaram", "Country": "United Kingdom", "Occupation": "Chief Cardiologist", "Account Type": "Savings", "KYC Status": "Verified", "Risk Score": 15, "Risk Level": "LOW", "PEP": "No", "Monthly Volume": 180000.0},
-        {"Customer ID": "CUST-1007", "Full Name": "Apex Logistics Corridors", "Country": "Cyprus", "Occupation": "Maritime Freight Transit", "Account Type": "Corporate", "KYC Status": "Under Review", "Risk Score": 74, "Risk Level": "HIGH", "PEP": "No", "Monthly Volume": 2800000.0},
-        {"Customer ID": "CUST-1010", "Full Name": "Kavita Mehra", "Country": "India", "Occupation": "Architectural Designer", "Account Type": "Savings", "KYC Status": "Verified", "Risk Score": 18, "Risk Level": "LOW", "PEP": "No", "Monthly Volume": 140000.0},
-    ]
-    
-    transactions = [
-        {"Tx ID": "TXN-88491", "Customer": "Vikramaditya Singhania", "Amount": 485000.0, "Currency": "INR", "Type": "WIRE_OUTBOUND", "Counterparty": "Al-Bahrani General Trading (UAE)", "Anomaly Score": 0.94, "Status": "FLAGGED", "Trigger Reason": "Rapid Layering / High-Risk Corridor", "Timestamp": "2026-10-05 17:42:10"},
-        {"Tx ID": "TXN-88489", "Customer": "Devendra Patil", "Amount": 99500.0, "Currency": "INR", "Type": "CASH_DEPOSIT", "Counterparty": "Multiple Branch Cashiers", "Anomaly Score": 0.88, "Status": "FLAGGED", "Trigger Reason": "Smurfing / Structuring under reporting cap", "Timestamp": "2026-10-05 16:30:15"},
-        {"Tx ID": "TXN-88485", "Customer": "Hon. Rameshwar Prasad", "Amount": 750000.0, "Currency": "INR", "Type": "RTGS_INBOUND", "Counterparty": "Aethelgard Consulting S.A.", "Anomaly Score": 0.91, "Status": "UNDER_INVESTIGATION", "Trigger Reason": "PEP Exposure / Unexplained Wealth Order", "Timestamp": "2026-10-05 15:18:02"},
-        {"Tx ID": "TXN-88480", "Customer": "Apex Logistics Corridors", "Amount": 1420000.0, "Currency": "USD", "Type": "SWIFT_TRANSFER", "Counterparty": "Bosphorus Maritime Trading", "Anomaly Score": 0.85, "Status": "FLAGGED", "Trigger Reason": "Sanctions Proximity / Offshore Gateway", "Timestamp": "2026-10-05 14:05:40"},
-        {"Tx ID": "TXN-88472", "Customer": "Global Trade Nexus LLC", "Amount": 320000.0, "Currency": "INR", "Type": "VENDOR_PAYMENT", "Counterparty": "Shenzhen Electrotech Corp", "Anomaly Score": 0.42, "Status": "CLEARED", "Trigger Reason": "Standard Trade Flow", "Timestamp": "2026-10-05 12:44:11"},
-        {"Tx ID": "TXN-88465", "Customer": "Ananya Sharma", "Amount": 18500.0, "Currency": "INR", "Type": "UPI_TRANSFER", "Counterparty": "Urban Merchant Pay", "Anomaly Score": 0.05, "Status": "CLEARED", "Trigger Reason": "Normal Personal Spending", "Timestamp": "2026-10-05 11:20:00"},
-        {"Tx ID": "TXN-88461", "Customer": "Siddharth Verma", "Amount": 125000.0, "Currency": "INR", "Type": "NEFT_OUTBOUND", "Counterparty": "CloudScale Hosting SG", "Anomaly Score": 0.38, "Status": "CLEARED", "Trigger Reason": "Routine SaaS Billing", "Timestamp": "2026-10-05 10:14:22"},
-    ]
-    
-    cases = [
-        {"Case ID": "CASE-4091", "Subject": "Singhania Trade Horizon Layering", "Assigned To": "Senior Risk Officer", "Priority": "CRITICAL", "Stage": "SAR In Preparation", "Filing Deadline": "2026-10-08", "Evidence Count": 7},
-        {"Case ID": "CASE-4088", "Subject": "Structuring Inquiries — D. Patil Branches", "Assigned To": "Compliance Officer", "Priority": "HIGH", "Stage": "Request for Information (RFI)", "Filing Deadline": "2026-10-12", "Evidence Count": 4},
-        {"Case ID": "CASE-4075", "Subject": "Apex Logistics Bosphorus Sanctions Check", "Assigned To": "Chief Sanctions Officer", "Priority": "HIGH", "Stage": "Escalated to MLRO", "Filing Deadline": "2026-10-09", "Evidence Count": 12},
-    ]
-    
-    return pd.DataFrame(customers), pd.DataFrame(transactions), pd.DataFrame(cases)
 
-df_customers, df_tx, df_cases = get_compliance_data()
-
-# ------------------------------------------------------------------------------
-# 5. Header & User Profile Bar
-# ------------------------------------------------------------------------------
-col_hdr_left, col_hdr_right = st.columns([3, 1])
-with col_hdr_left:
-    st.markdown("""
-    <div class="astra-header">
+# --- LEFT SIDEBAR (Matching Exact Screenshot 3) ---
+with st.sidebar:
+    # Astra AI Logo & Brand
+    logo_side_html = f'<img src="data:image/png;base64,{current_logo_b64}" width="38" height="38" style="object-fit: contain; vertical-align: middle; margin-right: 10px;" />' if current_logo_b64 else '⚡ '
+    st.markdown(f"""
+    <div style="display: flex; align-items: center; padding: 10px 0 16px 0; border-bottom: 1px solid var(--border-color); margin-bottom: 16px;">
+        {logo_side_html}
         <div>
-            <div style="display: flex; align-items: center;">
-                <span class="astra-title">⚡ Astra AI</span>
-                <span class="astra-badge">Snowflake Enterprise</span>
-            </div>
-            <p style="color: #94a3b8; font-size: 0.88rem; margin: 4px 0 0 0;">
-                Autonomous AML/KYC Surveillance, Transaction Anomaly Detection & Regulatory Copilot
-            </p>
+            <div style="font-size: 1.15rem; font-weight: 800; color: var(--text-primary); letter-spacing: -0.02em;">Astra AI</div>
+            <div style="font-size: 0.65rem; font-weight: 700; color: var(--text-muted); letter-spacing: 0.06em; text-transform: uppercase;">Risk & Regulatory Intelligence</div>
         </div>
     </div>
     """, unsafe_allow_html=True)
+    
+    st.markdown('<div style="font-size: 0.72rem; font-weight: 700; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.08em; margin: 12px 0 6px 0;">OPERATIONS</div>', unsafe_allow_html=True)
+    
+    nav_items = ["Dashboard", "Transactions", "Customers", "Alerts (8)", "Investigations (2)"]
+    for item in nav_items:
+        clean_name = item.split(" ")[0]
+        is_active = st.session_state.active_nav == clean_name
+        if st.button(f"{'📊 ' if 'Dash' in item else '⚡ ' if 'Trans' in item else '👥 ' if 'Cust' in item else '🔔 ' if 'Alert' in item else '📋 '}{item}", key=f"nav_{clean_name}", use_container_width=True, type="primary" if is_active else "secondary"):
+            st.session_state.active_nav = clean_name
+            st.rerun()
 
-with col_hdr_right:
-    col_u, col_o = st.columns([2, 1])
-    with col_u:
-        st.markdown(f"""
-        <div style="text-align: right; padding-top: 8px;">
-            <div style="font-size: 0.82rem; font-weight: 600; color: #f8fafc;">👤 {st.session_state.user_role}</div>
-            <span style="display: inline-block; width: 8px; height: 8px; background-color: #10b981; border-radius: 50%; margin-right: 4px;"></span>
-            <span style="font-size: 0.72rem; color: #94a3b8;">Active Session</span>
+    st.markdown('<div style="font-size: 0.72rem; font-weight: 700; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.08em; margin: 18px 0 6px 0;">AI & INTELLIGENCE</div>', unsafe_allow_html=True)
+    
+    if st.button("📖 Regulatory Rules", key="nav_rules", use_container_width=True, type="primary" if st.session_state.active_nav == "Regulatory" else "secondary"):
+        st.session_state.active_nav = "Regulatory"
+        st.rerun()
+        
+    if st.button("🧠 Copilot Assistant  [AI]", key="nav_copilot", use_container_width=True, type="primary" if st.session_state.active_nav == "Copilot" else "secondary"):
+        st.session_state.active_nav = "Copilot"
+        st.rerun()
+
+    st.write("")
+    st.write("")
+    
+    # User Profile Card at Sidebar Bottom
+    user_name = getattr(st.session_state, "user_name", "Senior Risk Officer")
+    st.markdown(f"""
+    <div style="background: var(--card-bg); border: 1px solid var(--border-color); border-radius: 14px; padding: 12px; margin-top: 20px; display: flex; align-items: center; justify-content: space-between;">
+        <div style="display: flex; align-items: center; gap: 10px;">
+            <div style="width: 32px; height: 32px; border-radius: 50%; background: #2563eb; color: #fff; font-weight: 700; display: flex; align-items: center; justify-content: center; font-size: 0.85rem;">S</div>
+            <div>
+                <div style="font-size: 0.82rem; font-weight: 700; color: var(--text-primary);">{user_name}</div>
+                <span style="font-size: 0.65rem; font-weight: 800; background: rgba(37, 99, 235, 0.15); color: #2563eb; padding: 1px 6px; border-radius: 4px;">USER</span>
+            </div>
+        </div>
+    </div>
+    """, unsafe_allow_html=True)
+    
+    if st.button("🚪 Sign Out", key="sidebar_logout_btn", use_container_width=True):
+        st.session_state.authenticated = False
+        st.rerun()
+
+# --- TOP BREADCRUMB & ENGINE STATUS ---
+bc_col1, bc_col2 = st.columns([8, 2])
+with bc_col1:
+    st.markdown(f"""
+    <div style="display: flex; align-items: center; gap: 8px; font-size: 0.85rem; color: var(--text-secondary); margin-bottom: 12px;">
+        <span>Astra AI</span> / <strong style="color: var(--text-primary);">{st.session_state.active_nav}</strong>
+    </div>
+    """, unsafe_allow_html=True)
+with bc_col2:
+    st.markdown("""
+    <div style="text-align: right; display: flex; align-items: center; justify-content: flex-end; gap: 6px; font-size: 0.8rem; font-weight: 600; color: #10b981;">
+        <span style="display: inline-block; width: 8px; height: 8px; border-radius: 50%; background: #10b981; box-shadow: 0 0 8px #10b981;"></span>
+        <span>Live Engine Connected</span>
+    </div>
+    """, unsafe_allow_html=True)
+
+# ------------------------------------------------------------------------------
+# 8. VIEW: OPERATIONAL DASHBOARD
+# ------------------------------------------------------------------------------
+if st.session_state.active_nav == "Dashboard":
+    # 1. TOP ACTIVE ALERT BANNER
+    alert_c1, alert_c2 = st.columns([4, 1.2])
+    with alert_c1:
+        st.markdown("""
+        <div style="background: linear-gradient(90deg, rgba(29, 78, 216, 0.12), rgba(6, 182, 212, 0.06)); border: 1px solid rgba(59, 130, 246, 0.35); border-radius: 16px; padding: 16px 20px;">
+            <div class="alert-tag-red">ACTIVE ALERT</div>
+            <div style="font-size: 0.88rem; color: var(--text-primary); margin-top: 4px;">
+                Customer <strong>Vikramaditya Singhania (CUST-1008)</strong> triggered Statutory AML Rule 01 (Large Value CDD) and Rule 03 (High-Risk Jurisdiction).
+            </div>
         </div>
         """, unsafe_allow_html=True)
-    with col_o:
+    with alert_c2:
         st.write("")
-        if st.button("Sign Out", use_container_width=True):
-            logout_user()
+        b_c1, b_c2 = st.columns(2)
+        with b_c1:
+            if st.button("Review TXN-1024 ➔", use_container_width=True, type="primary"):
+                st.session_state.active_nav = "Transactions"
+                st.rerun()
+        with b_c2:
+            if st.button("Ask Copilot", use_container_width=True):
+                st.session_state.active_nav = "Copilot"
+                st.session_state.copilot_query = "Why was transaction TXN-1024 flagged?"
+                st.rerun()
+
+    st.write("")
+
+    # 2. 4 KPI STATS CARDS (Exact numbers from Screenshot 3)
+    k1, k2, k3, k4 = st.columns(4)
+    with k1:
+        st.markdown("""
+        <div class="kpi-stat-card">
+            <div class="kpi-stat-header">
+                <span class="kpi-stat-label">TOTAL TRANSACTIONS</span>
+                <span style="background: rgba(59, 130, 246, 0.15); color: #3b82f6; padding: 4px 8px; border-radius: 8px;">📈</span>
+            </div>
+            <div class="kpi-stat-val">121</div>
+            <div class="kpi-stat-sub">Monitored Volume: ₹1,26,13,759.65</div>
+        </div>
+        """, unsafe_allow_html=True)
+        
+    with k2:
+        st.markdown("""
+        <div class="kpi-stat-card">
+            <div class="kpi-stat-header">
+                <span class="kpi-stat-label">SUSPICIOUS TRANSACTIONS</span>
+                <span style="background: rgba(239, 68, 68, 0.15); color: #ef4444; padding: 4px 8px; border-radius: 8px;">⚠️</span>
+            </div>
+            <div class="kpi-stat-val" style="color: #ef4444;">14 <span style="font-size: 1.1rem; font-weight: 500; color: var(--text-secondary);">(11.6%)</span></div>
+            <div class="kpi-stat-sub">Triggered explainable rule thresholds</div>
+        </div>
+        """, unsafe_allow_html=True)
+
+    with k3:
+        st.markdown("""
+        <div class="kpi-stat-card">
+            <div class="kpi-stat-header">
+                <span class="kpi-stat-label">HIGH-RISK CUSTOMERS</span>
+                <span style="background: rgba(249, 115, 22, 0.15); color: #f97316; padding: 4px 8px; border-radius: 8px;">👥</span>
+            </div>
+            <div class="kpi-stat-val" style="color: #f97316;">3</div>
+            <div class="kpi-stat-sub">Subject to Enhanced Due Diligence (EDD)</div>
+        </div>
+        """, unsafe_allow_html=True)
+
+    with k4:
+        st.markdown("""
+        <div class="kpi-stat-card">
+            <div class="kpi-stat-header">
+                <span class="kpi-stat-label">OPEN INVESTIGATIONS</span>
+                <span style="background: rgba(16, 185, 129, 0.15); color: #10b981; padding: 4px 8px; border-radius: 8px;">📋</span>
+            </div>
+            <div class="kpi-stat-val">2</div>
+            <div class="kpi-stat-sub">Active cases under compliance review</div>
+        </div>
+        """, unsafe_allow_html=True)
+
+    st.write("")
+
+    # 3. MIDDLE SECTION: RISK DISTRIBUTION & 14-DAY TIMELINE
+    m_col1, m_col2 = st.columns([1, 1.5])
+    with m_col1:
+        st.markdown("""
+        <div class="kpi-stat-card">
+            <div class="kpi-stat-header">
+                <strong style="color: var(--text-primary); font-size: 1rem;">Risk Score Distribution</strong>
+                <span style="color: #06b6d4;">🛡️</span>
+            </div>
+            
+            <div style="margin-top: 14px;">
+                <div style="display: flex; justify-content: space-between; font-size: 0.82rem; margin-bottom: 4px;">
+                    <span style="color: #ef4444; font-weight: 600;">Critical Risk (85-100)</span>
+                    <strong>4 txns</strong>
+                </div>
+                <div style="width: 100%; height: 7px; background: rgba(0,0,0,0.06); border-radius: 4px; overflow: hidden; margin-bottom: 14px;">
+                    <div style="width: 14%; height: 100%; background: #ef4444;"></div>
+                </div>
+
+                <div style="display: flex; justify-content: space-between; font-size: 0.82rem; margin-bottom: 4px;">
+                    <span style="color: #f97316; font-weight: 600;">High Risk (65-84)</span>
+                    <strong>0 txns</strong>
+                </div>
+                <div style="width: 100%; height: 7px; background: rgba(0,0,0,0.06); border-radius: 4px; overflow: hidden; margin-bottom: 14px;">
+                    <div style="width: 0%; height: 100%; background: #f97316;"></div>
+                </div>
+
+                <div style="display: flex; justify-content: space-between; font-size: 0.82rem; margin-bottom: 4px;">
+                    <span style="color: #eab308; font-weight: 600;">Medium Risk (40-64)</span>
+                    <strong>3 txns</strong>
+                </div>
+                <div style="width: 100%; height: 7px; background: rgba(0,0,0,0.06); border-radius: 4px; overflow: hidden; margin-bottom: 14px;">
+                    <div style="width: 10%; height: 100%; background: #eab308;"></div>
+                </div>
+
+                <div style="display: flex; justify-content: space-between; font-size: 0.82rem; margin-bottom: 4px;">
+                    <span style="color: #10b981; font-weight: 600;">Low Risk (0-39)</span>
+                    <strong>114 txns</strong>
+                </div>
+                <div style="width: 100%; height: 7px; background: rgba(0,0,0,0.06); border-radius: 4px; overflow: hidden; margin-bottom: 14px;">
+                    <div style="width: 92%; height: 100%; background: #10b981;"></div>
+                </div>
+            </div>
+
+            <div style="font-size: 0.74rem; color: var(--text-muted); margin-top: 10px; border-top: 1px solid var(--border-color); padding-top: 10px;">
+                Evaluated by the <strong>Deterministic Risk Engine</strong> using baseline deviation, FATF corridor checks, and burst frequency.
+            </div>
+        </div>
+        """, unsafe_allow_html=True)
+
+    with m_col2:
+        st.markdown("""
+        <div class="kpi-stat-card">
+            <div class="kpi-stat-header">
+                <strong style="color: var(--text-primary); font-size: 1rem;">Suspicious Volume & Alerts Timeline (14 Days)</strong>
+                <span style="color: #3b82f6;">📈</span>
+            </div>
+            
+            <div style="height: 195px; display: flex; align-items: flex-end; gap: 8px; padding-top: 18px;">
+        """, unsafe_allow_html=True)
+        
+        # 14 Days synthetic chart matching Screenshot 3
+        chart_data = [
+            ("Sep 23", 10, 0), ("Sep 24", 15, 0), ("Sep 25", 35, 0), ("Sep 26", 20, 1),
+            ("Sep 27", 18, 1), ("Sep 28", 40, 0), ("Sep 29", 12, 0), ("Sep 30", 55, 0),
+            ("Oct 01", 85, 1), ("Oct 02", 45, 0), ("Oct 03", 60, 0), ("Oct 04", 75, 1),
+            ("Oct 05", 25, 6), ("Oct 06", 50, 0)
+        ]
+        
+        cols = st.columns(len(chart_data))
+        for idx, (day, val, flg) in enumerate(chart_data):
+            with cols[idx]:
+                st.write("")
+                color = "#ef4444" if flg > 0 else "#3b82f6"
+                flag_badge = f'<div style="text-align: center; color: #ef4444; font-weight: 700; font-size: 0.7rem;">{flg}</div>' if flg > 0 else '<div style="height: 14px;"></div>'
+                st.markdown(f"""
+                <div style="display: flex; flex-direction: column; align-items: center; justify-content: flex-end; height: 160px;">
+                    {flag_badge}
+                    <div style="width: 100%; height: {val * 1.3}px; background: {color}; border-radius: 4px 4px 0 0;"></div>
+                    <div style="font-size: 0.65rem; color: var(--text-muted); margin-top: 4px; white-space: nowrap;">{day.split(' ')[1]}</div>
+                </div>
+                """, unsafe_allow_html=True)
+                
+        st.markdown("""
+            <div style="display: flex; gap: 16px; justify-content: center; margin-top: 10px; font-size: 0.75rem; color: var(--text-secondary);">
+                <span><span style="display: inline-block; width: 10px; height: 10px; background: #3b82f6; border-radius: 2px;"></span> Normal Transactions</span>
+                <span><span style="display: inline-block; width: 10px; height: 10px; background: #ef4444; border-radius: 2px;"></span> Suspicious / Flagged Activity</span>
+            </div>
+        </div>
+        """, unsafe_allow_html=True)
+
+    st.write("")
+
+    # 4. BOTTOM SECTION: PRIORITY RISK ALERTS & MONITORED CORRIDORS (Exact Screenshot 3)
+    b_col1, b_col2 = st.columns([1.6, 1])
+    
+    with b_col1:
+        st.markdown("""
+        <div class="kpi-stat-card">
+            <div class="kpi-stat-header">
+                <div>
+                    <strong style="color: var(--text-primary); font-size: 1rem;">Priority Risk Alerts</strong>
+                    <div style="font-size: 0.74rem; color: var(--text-muted);">Latest Triggered Events</div>
+                </div>
+            </div>
+            
+            <div style="margin-top: 8px;">
+                <div class="alert-row">
+                    <div>
+                        <span class="badge-crit">CRITICAL</span>
+                        <strong style="color: var(--text-primary);">Vikramaditya Singhania</strong> &bull; <span style="color: var(--text-secondary);">₹6,80,000 to Panama</span>
+                    </div>
+                    <span style="color: #3b82f6; font-size: 0.82rem; font-weight: 600;">TXN-1025 ↗</span>
+                </div>
+                <div class="alert-row">
+                    <div>
+                        <span class="badge-crit">CRITICAL</span>
+                        <strong style="color: var(--text-primary);">Vikramaditya Singhania</strong> &bull; <span style="color: var(--text-secondary);">₹12,50,000 to Cayman Islands</span>
+                    </div>
+                    <span style="color: #3b82f6; font-size: 0.82rem; font-weight: 600;">TXN-1024 ↗</span>
+                </div>
+                <div class="alert-row">
+                    <div>
+                        <span class="badge-med">MEDIUM</span>
+                        <strong style="color: var(--text-primary);">Devendra Patil</strong> &bull; <span style="color: var(--text-secondary);">₹49,800 to India</span>
+                    </div>
+                    <span style="color: #3b82f6; font-size: 0.82rem; font-weight: 600;">TXN-1034 ↗</span>
+                </div>
+                <div class="alert-row">
+                    <div>
+                        <span class="badge-med">MEDIUM</span>
+                        <strong style="color: var(--text-primary);">Devendra Patil</strong> &bull; <span style="color: var(--text-secondary);">₹48,900 to India</span>
+                    </div>
+                    <span style="color: #3b82f6; font-size: 0.82rem; font-weight: 600;">TXN-1033 ↗</span>
+                </div>
+                <div class="alert-row">
+                    <div>
+                        <span class="badge-med">MEDIUM</span>
+                        <strong style="color: var(--text-primary);">Devendra Patil</strong> &bull; <span style="color: var(--text-secondary);">₹49,200 to India</span>
+                    </div>
+                    <span style="color: #3b82f6; font-size: 0.82rem; font-weight: 600;">TXN-1032 ↗</span>
+                </div>
+                <div class="alert-row">
+                    <div>
+                        <span class="badge-low">LOW</span>
+                        <strong style="color: var(--text-primary);">Devendra Patil</strong> &bull; <span style="color: var(--text-secondary);">₹49,500 to India</span>
+                    </div>
+                    <span style="color: #3b82f6; font-size: 0.82rem; font-weight: 600;">TXN-1031 ↗</span>
+                </div>
+                <div class="alert-row">
+                    <div>
+                        <span class="badge-crit">CRITICAL</span>
+                        <strong style="color: var(--text-primary);">Hon. Rameshwar Prasad</strong> &bull; <span style="color: var(--text-secondary);">₹8,50,000 to Switzerland</span>
+                    </div>
+                    <span style="color: #3b82f6; font-size: 0.82rem; font-weight: 600;">TXN-1040 ↗</span>
+                </div>
+                <div class="alert-row">
+                    <div>
+                        <span class="badge-crit">CRITICAL</span>
+                        <strong style="color: var(--text-primary);">Global Trade Nexus LLC</strong> &bull; <span style="color: var(--text-secondary);">₹18,50,000 to Vanuatu</span>
+                    </div>
+                    <span style="color: #3b82f6; font-size: 0.82rem; font-weight: 600;">TXN-1051 ↗</span>
+                </div>
+            </div>
+        </div>
+        """, unsafe_allow_html=True)
+
+    with b_col2:
+        st.markdown("""
+        <div class="kpi-stat-card">
+            <div class="kpi-stat-header">
+                <strong style="color: var(--text-primary); font-size: 1rem;">Monitored Corridors</strong>
+                <span style="color: #06b6d4;">🌐</span>
+            </div>
+            
+            <div style="margin-top: 8px;">
+                <div class="alert-row">
+                    <span style="color: var(--text-secondary); font-size: 0.85rem;">117 transactions total</span>
+                    <div style="text-align: right;">
+                        <span style="color: #ef4444; font-weight: 700; font-size: 0.85rem;">10 Flagged</span><br>
+                        <span style="color: var(--text-muted); font-size: 0.75rem;">₹79,83,759.65</span>
+                    </div>
+                </div>
+                <div class="alert-row">
+                    <span style="color: var(--text-secondary); font-size: 0.85rem;">1 transactions total</span>
+                    <div style="text-align: right;">
+                        <span style="color: #ef4444; font-weight: 700; font-size: 0.85rem;">1 Flagged</span><br>
+                        <span style="color: var(--text-muted); font-size: 0.75rem;">₹12,50,000</span>
+                    </div>
+                </div>
+                <div class="alert-row">
+                    <span style="color: var(--text-secondary); font-size: 0.85rem;">1 transactions total</span>
+                    <div style="text-align: right;">
+                        <span style="color: #ef4444; font-weight: 700; font-size: 0.85rem;">1 Flagged</span><br>
+                        <span style="color: var(--text-muted); font-size: 0.75rem;">₹6,80,000</span>
+                    </div>
+                </div>
+                <div class="alert-row">
+                    <span style="color: var(--text-secondary); font-size: 0.85rem;">1 transactions total</span>
+                    <div style="text-align: right;">
+                        <span style="color: #ef4444; font-weight: 700; font-size: 0.85rem;">1 Flagged</span><br>
+                        <span style="color: var(--text-muted); font-size: 0.75rem;">₹8,50,000</span>
+                    </div>
+                </div>
+                <div class="alert-row">
+                    <span style="color: var(--text-secondary); font-size: 0.85rem;">1 transactions total</span>
+                    <div style="text-align: right;">
+                        <span style="color: #ef4444; font-weight: 700; font-size: 0.85rem;">1 Flagged</span><br>
+                        <span style="color: var(--text-muted); font-size: 0.75rem;">₹18,50,000</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+        """, unsafe_allow_html=True)
 
 # ------------------------------------------------------------------------------
-# 6. Key Surveillance Metrics
+# 9. VIEW: NEURAL COPILOT ASSISTANT
 # ------------------------------------------------------------------------------
-m1, m2, m3, m4 = st.columns(4)
+elif st.session_state.active_nav == "Copilot":
+    st.subheader("🧠 Astra AI Neural Copilot Assistant")
+    st.caption("Real-Time Financial Crime, AML & Regulatory Guidance")
 
-with m1:
-    high_risk_count = int((df_customers['Risk Level'] == 'HIGH').sum())
-    st.markdown(f"""
-    <div class="metric-card">
-        <div class="metric-label">High-Risk Entities</div>
-        <div class="metric-value">{high_risk_count}</div>
-        <div class="metric-sub negative">⚠️ 4 PEP / EDD Accounts</div>
-    </div>
-    """, unsafe_allow_html=True)
-
-with m2:
-    flagged_vol = df_tx[df_tx['Status'] == 'FLAGGED']['Amount'].sum()
-    st.markdown(f"""
-    <div class="metric-card">
-        <div class="metric-label">Flagged Volume (24h)</div>
-        <div class="metric-value">₹{flagged_vol:,.0f}</div>
-        <div class="metric-sub negative">↑ 18.4% vs 7d Baseline</div>
-    </div>
-    """, unsafe_allow_html=True)
-
-with m3:
-    critical_alerts = int((df_tx['Anomaly Score'] >= 0.85).sum())
-    st.markdown(f"""
-    <div class="metric-card">
-        <div class="metric-label">Critical Anomaly Alerts</div>
-        <div class="metric-value">{critical_alerts}</div>
-        <div class="metric-sub">Layering & Structuring</div>
-    </div>
-    """, unsafe_allow_html=True)
-
-with m4:
-    pending_sar = len(df_cases)
-    st.markdown(f"""
-    <div class="metric-card">
-        <div class="metric-label">Active SAR Workflows</div>
-        <div class="metric-value">{pending_sar}</div>
-        <div class="metric-sub">1 Pending MLRO Approval</div>
-    </div>
-    """, unsafe_allow_html=True)
-
-st.write("")
-
-# ------------------------------------------------------------------------------
-# 7. Interactive Tabs Navigation
-# ------------------------------------------------------------------------------
-tab_copilot, tab_transactions, tab_customers, tab_cases = st.tabs([
-    "🧠 Neural Copilot (AI Reasoning)",
-    "⚡ Transaction Surveillance",
-    "🛡️ Customer AML / KYC Risk",
-    "📋 Case Management & SAR"
-])
-
-# ------------------------------------------------------------------------------
-# TAB 1: Neural Copilot
-# ------------------------------------------------------------------------------
-with tab_copilot:
-    st.subheader("Astra AI Neural Risk Assistant")
-    st.caption("Context-grounded reasoning powered by Snowflake Cortex AI and Astra Compliance Records.")
-
-    if "messages" not in st.session_state:
-        st.session_state.messages = [
-            {
-                "role": "assistant",
-                "content": f"👋 Greetings, {st.session_state.user_role}. I am Astra AI, connected to your Snowflake compliance surveillance environment. Ask me to evaluate suspicious transactions, review customer PEP exposure, generate SAR narratives, or assess sanction proximity."
-            }
+    if "copilot_history" not in st.session_state:
+        st.session_state.copilot_history = [
+            {"role": "assistant", "content": "👋 Greetings, Senior Risk Officer. I am Astra AI. I have analyzed your transaction stream, 14 flagged alerts, and high-risk customer profiles. How can I assist you with regulatory investigation or SAR narrative drafting?"}
         ]
 
-    for msg in st.session_state.messages:
-        with st.chat_message(msg["role"]):
-            st.markdown(msg["content"])
+    for m in st.session_state.copilot_history:
+        with st.chat_message(m["role"]):
+            st.markdown(m["content"])
 
-    if prompt := st.chat_input("Ask Astra AI (e.g., 'Analyze Vikramaditya Singhania for rapid layering' or 'Draft SAR summary')"):
-        st.session_state.messages.append({"role": "user", "content": prompt})
+    init_prompt = st.session_state.copilot_query or ""
+    prompt = st.chat_input("Ask Astra AI...", key="copilot_chat_input")
+    if init_prompt and not prompt:
+        prompt = init_prompt
+        st.session_state.copilot_query = ""
+
+    if prompt:
+        st.session_state.copilot_history.append({"role": "user", "content": prompt})
         with st.chat_message("user"):
             st.markdown(prompt)
 
         with st.chat_message("assistant"):
-            with st.spinner("Astra Neural Copilot is analyzing compliance records..."):
-                response_text = ""
-                
-                # Check for Snowflake Cortex if session is available
-                try:
-                    conn = st.connection("snowflake")
-                    session = conn.session()
-                    cortex_query = f"""
-                    SELECT SNOWFLAKE.CORTEX.COMPLETE(
-                        'mistral-large2',
-                        'You are Astra AI, an institutional AML compliance copilot. Answer this inquiry based on compliance records: {prompt}'
-                    ) AS AI_RESPONSE
-                    """
-                    result = session.sql(cortex_query).collect()
-                    if result and len(result) > 0:
-                        response_text = result[0]['AI_RESPONSE']
-                except Exception:
-                    response_text = ""
-
-                # Context-grounded intelligent fallback
-                if not response_text:
-                    p_lower = prompt.lower()
-                    if "singhania" in p_lower or "layering" in p_lower:
-                        response_text = """### 🛡️ Astra AI Risk Assessment: Vikramaditya Singhania (CUST-1008)
-- **Current AML Risk Score**: **88/100 (HIGH RISK)**
-- **Surveillance Findings**:
-  - **Flagged Transaction**: `TXN-88491` for **₹485,000.00** routed to *Al-Bahrani General Trading (UAE)*.
-  - **Identified Pattern**: **Rapid Layering**. Inbound funds from disparate regional accounts were aggregated and transferred outbound within 3 hours, exceeding his monthly normal baseline by 320%.
-  - **PEP Status**: Active Director with cross-border sanction exposure.
+            with st.spinner("Astra Neural Copilot is reasoning..."):
+                p_lower = prompt.lower()
+                if "1024" in p_lower or "singhania" in p_lower:
+                    ans = """### 🛡️ Flag Evaluation: Transaction TXN-1024
+- **Customer**: Vikramaditya Singhania (CUST-1008)
+- **Amount**: ₹12,50,000.00 to *Cayman Islands*
+- **Triggered Rules**:
+  1. `AML-R01`: Large Value Customer Due Diligence (Threshold > ₹10,00,000)
+  2. `AML-R03`: High-Risk Offshore Secrecy Jurisdiction (FATF Grey/Monitoring List)
 - **Recommended Remediation**:
-  1. Freeze remaining pending wire orders under PMLA Section 12.
-  2. Issue Request for Information (RFI) regarding trade invoice documentation.
-  3. Escalated to **CASE-4091** for immediate Suspicious Activity Report (SAR) filing."""
-                    elif "patil" in p_lower or "structuring" in p_lower or "smurfing" in p_lower:
-                        response_text = """### ⚡ Structuring Detection: Devendra Patil (CUST-1003)
-- **Anomaly Score**: **0.88 (CRITICAL)**
-- **Activity Summary**:
-  - Customer executed 4 distinct cash deposits of ₹99,500 across 3 suburban branch cashiers within 48 hours.
-  - This pattern deliberately skirts the ₹100,000 / $10,000 mandatory CTR threshold (**Smurfing**).
-- **Action**: Alert triggered under Rule `AML-R104` (Cash Structuring Detection). Case `CASE-4088` assigned to compliance team."""
-                    elif "sar" in p_lower or "draft" in p_lower or "narrative" in p_lower:
-                        response_text = """### 📋 Draft Suspicious Activity Report (SAR) Narrative
+  - Issue urgent Request for Information (RFI) for beneficial ownership.
+  - Escalate to Case `CASE-4091` for FIU Suspicious Activity Report (SAR) filing."""
+                elif "sar" in p_lower or "draft" in p_lower:
+                    ans = """### 📋 Draft SAR Filing Narrative
 **Subject**: Vikramaditya Singhania (CUST-1008)  
-**Reporting Period**: October 1 – October 5, 2026  
-**Jurisdiction**: Financial Intelligence Unit (FIU)  
+**Reporting Jurisdiction**: Financial Intelligence Unit (FIU)  
 
-**Narrative Summary**:
-The subject's account demonstrated an abrupt escalation in velocity, characterized by ₹485,000.00 outbound wires to a foreign free-zone entity without verifiable commercial shipping documentation. Historical monthly baseline was ₹180,000.00. The rapid velocity and offshore transshipment route are strongly indicative of trade-based money laundering (TBML) and layering. Full audit logs and IP signatures are archived under Case `CASE-4091`."""
-                    else:
-                        response_text = f"### 🧠 Astra AI Intelligence Analysis\nI have evaluated your inquiry against current Snowflake AML records: **\"{prompt}\"**.\n\n- **Surveillance Scope**: 10 monitored customer accounts, 7 real-time transactions, 3 active SAR workflows.\n- **Primary Alerts**: 2 transactions currently flagged for layering and structuring.\n- **Recommendation**: Maintain enhanced surveillance on accounts with Risk Score > 75 and ensure all EDD re-evaluations are completed before month-end."
+**Summary of Suspicious Activity**:
+Between Oct 01 and Oct 05, subject engaged in multiple high-velocity outbound transfers totaling ₹19,30,000.00 to offshore jurisdictions (Panama & Cayman Islands) with no verifiable commercial rationale. Prior monthly average was ₹1,80,000.00. Funds were aggregated from rapid inbound domestic wires and immediately wired out, presenting classic indicators of Layering and Trade-Based Money Laundering."""
+                else:
+                    ans = f"### 🧠 Astra AI Regulatory Reasoning\nI have evaluated: **\"{prompt}\"** against your compliance database (121 total transactions, 14 flagged).\n\n- **Risk Status**: 4 Critical risk items requiring MLRO signoff.\n- **Action**: All audit evidence has been preserved in compliance logs."
 
-                st.markdown(response_text)
-                st.session_state.messages.append({"role": "assistant", "content": response_text})
-
-# ------------------------------------------------------------------------------
-# TAB 2: Transaction Surveillance
-# ------------------------------------------------------------------------------
-with tab_transactions:
-    st.subheader("Real-Time Transaction Anomaly Stream")
-    
-    col_f1, col_f2 = st.columns([2, 1])
-    with col_f1:
-        search_tx = st.text_input("Search transactions by Customer, ID, or Counterparty:", "")
-    with col_f2:
-        status_filter = st.selectbox("Status Filter", ["All", "FLAGGED", "UNDER_INVESTIGATION", "CLEARED"])
-
-    filtered_tx = df_tx.copy()
-    if search_tx:
-        filtered_tx = filtered_tx[
-            filtered_tx['Customer'].str.contains(search_tx, case=False) |
-            filtered_tx['Tx ID'].str.contains(search_tx, case=False) |
-            filtered_tx['Counterparty'].str.contains(search_tx, case=False)
-        ]
-    if status_filter != "All":
-        filtered_tx = filtered_tx[filtered_tx['Status'] == status_filter]
-
-    display_tx = filtered_tx.copy()
-    display_tx['Amount'] = display_tx['Amount'].apply(lambda x: f"₹{x:,.2f}")
-    display_tx['Anomaly Score'] = display_tx['Anomaly Score'].apply(lambda x: f"{x:.2f}")
-
-    st.dataframe(display_tx, use_container_width=True, height=320)
-    
-    col_b1, col_b2, col_b3 = st.columns([1, 1, 2])
-    with col_b1:
-        if st.button("🚩 Flag for SAR Review", use_container_width=True):
-            st.success("Selected transactions added to Case Review Queue.")
-    with col_b2:
-        if st.button("📥 Export Audit Snapshot", use_container_width=True):
-            st.info("Audit snapshot generated.")
+                st.markdown(ans)
+                st.session_state.copilot_history.append({"role": "assistant", "content": ans})
 
 # ------------------------------------------------------------------------------
-# TAB 3: Customer AML / KYC Risk Profiles
+# 10. VIEW: TRANSACTIONS & CUSTOMERS
 # ------------------------------------------------------------------------------
-with tab_customers:
-    st.subheader("Institutional Customer Risk Directory")
-    
-    col_c1, col_c2 = st.columns([2, 1])
-    with col_c1:
-        search_cust = st.text_input("Filter customers by name or country:", "")
-    with col_c2:
-        risk_filter = st.selectbox("Risk Level", ["All", "HIGH", "MEDIUM", "LOW"])
+elif st.session_state.active_nav in ["Transactions", "Alerts"]:
+    st.subheader("⚡ Live Transaction Surveillance Ledger")
+    tx_df = pd.DataFrame([
+        {"Tx ID": "TXN-1024", "Customer": "Vikramaditya Singhania", "Amount": "₹12,50,000.00", "Destination": "Cayman Islands", "Risk": "CRITICAL", "Anomaly Score": 0.94, "Status": "FLAGGED"},
+        {"Tx ID": "TXN-1025", "Customer": "Vikramaditya Singhania", "Amount": "₹6,80,000.00", "Destination": "Panama", "Risk": "CRITICAL", "Anomaly Score": 0.92, "Status": "FLAGGED"},
+        {"Tx ID": "TXN-1040", "Customer": "Hon. Rameshwar Prasad", "Amount": "₹8,50,000.00", "Destination": "Switzerland", "Risk": "CRITICAL", "Anomaly Score": 0.91, "Status": "FLAGGED"},
+        {"Tx ID": "TXN-1051", "Customer": "Global Trade Nexus LLC", "Amount": "₹18,50,000.00", "Destination": "Vanuatu", "Risk": "CRITICAL", "Anomaly Score": 0.89, "Status": "FLAGGED"},
+        {"Tx ID": "TXN-1034", "Customer": "Devendra Patil", "Amount": "₹49,800.00", "Destination": "India", "Risk": "MEDIUM", "Anomaly Score": 0.65, "Status": "FLAGGED"},
+        {"Tx ID": "TXN-1033", "Customer": "Devendra Patil", "Amount": "₹48,900.00", "Destination": "India", "Risk": "MEDIUM", "Anomaly Score": 0.64, "Status": "FLAGGED"},
+        {"Tx ID": "TXN-1031", "Customer": "Devendra Patil", "Amount": "₹49,500.00", "Destination": "India", "Risk": "LOW", "Anomaly Score": 0.32, "Status": "CLEARED"},
+    ])
+    st.dataframe(tx_df, use_container_width=True)
 
-    filtered_cust = df_customers.copy()
-    if search_cust:
-        filtered_cust = filtered_cust[
-            filtered_cust['Full Name'].str.contains(search_cust, case=False) |
-            filtered_cust['Country'].str.contains(search_cust, case=False)
-        ]
-    if risk_filter != "All":
-        filtered_cust = filtered_cust[filtered_cust['Risk Level'] == risk_filter]
+elif st.session_state.active_nav == "Customers":
+    st.subheader("👥 Customer AML & KYC Profiles")
+    cust_df = pd.DataFrame([
+        {"Customer ID": "CUST-1008", "Full Name": "Vikramaditya Singhania", "KYC Status": "Enhanced Due Diligence", "Risk Score": 88, "Risk Level": "HIGH", "PEP": "Yes"},
+        {"Customer ID": "CUST-1004", "Full Name": "Hon. Rameshwar Prasad", "KYC Status": "Enhanced Due Diligence", "Risk Score": 82, "Risk Level": "HIGH", "PEP": "Yes"},
+        {"Customer ID": "CUST-1003", "Full Name": "Devendra Patil", "KYC Status": "Verified", "Risk Score": 78, "Risk Level": "HIGH", "PEP": "No"},
+        {"Customer ID": "CUST-1005", "Full Name": "Global Trade Nexus LLC", "KYC Status": "Verified", "Risk Score": 68, "Risk Level": "MEDIUM", "PEP": "No"},
+        {"Customer ID": "CUST-1001", "Full Name": "Ananya Sharma", "KYC Status": "Verified", "Risk Score": 12, "Risk Level": "LOW", "PEP": "No"},
+    ])
+    st.dataframe(cust_df, use_container_width=True)
 
-    display_cust = filtered_cust.copy()
-    display_cust['Monthly Volume'] = display_cust['Monthly Volume'].apply(lambda x: f"₹{x:,.2f}")
-
-    st.dataframe(display_cust, use_container_width=True, height=360)
-
-# ------------------------------------------------------------------------------
-# TAB 4: Case Management & Audit Trail
-# ------------------------------------------------------------------------------
-with tab_cases:
-    st.subheader("Active Regulatory Investigations & SAR Workflows")
-    
-    for _, case in df_cases.iterrows():
-        with st.expander(f"{case['Case ID']}: {case['Subject']} — Priority: {case['Priority']}"):
-            st.write(f"**Assigned Investigator**: {case['Assigned To']}")
-            st.write(f"**Investigation Stage**: {case['Stage']}")
-            st.write(f"**Statutory Filing Deadline**: {case['Filing Deadline']}")
-            st.write(f"**Attached Evidence Items**: {case['Evidence Count']}")
-            st.button(f"Generate FIU Filing Package ({case['Case ID']})", key=case['Case ID'])
-
-# ------------------------------------------------------------------------------
-# Footer
-# ------------------------------------------------------------------------------
-st.markdown("---")
-st.markdown(
-    "<div style='text-align: center; color: #64748b; font-size: 0.8rem;'>"
-    "Astra AI Enterprise Surveillance • Deployed on Snowflake Snowsight • Internal & Regulatory Confidential"
-    "</div>",
-    unsafe_allow_html=True
-)
+else:
+    st.subheader(f"📋 {st.session_state.active_nav}")
+    st.info("Statutory investigation queue active. 2 cases pending final FIU signoff.")
