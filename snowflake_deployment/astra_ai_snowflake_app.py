@@ -262,25 +262,37 @@ apple_css = f"""
     
     /* Clean sidebar block spacing */
     [data-testid="stSidebar"] [data-testid="stVerticalBlock"] {{
-        gap: 0.28rem !important;
+        gap: 0.35rem !important;
     }}
     [data-testid="stSidebar"] [data-testid="stMarkdownContainer"] p {{
         margin: 0 !important;
     }}
     
-    /* Sidebar Section Headers */
+    /* Sidebar Section Headers (macOS Hierarchy & Spacing) */
     .sidebar-section-header {{
         font-size: 0.68rem !important;
         font-weight: 700 !important;
         color: var(--apple-text-muted) !important;
         text-transform: uppercase !important;
         letter-spacing: 0.08em !important;
-        padding: 14px 10px 4px 10px !important;
-        margin: 0 !important;
+        padding: 16px 12px 12px 12px !important;
+        margin-top: 10px !important;
+        margin-bottom: 8px !important;
         display: block !important;
         width: 100% !important;
         box-sizing: border-box !important;
-        line-height: 1.2 !important;
+        line-height: 1.4 !important;
+        min-height: 42px !important;
+    }}
+    
+    [data-testid="stSidebar"] [data-testid="stMarkdownContainer"]:has(.sidebar-section-header) {{
+        min-height: 42px !important;
+        display: block !important;
+    }}
+
+    [data-testid="stSidebar"] .stButton {{
+        margin: 0 !important;
+        margin-bottom: 2px !important;
     }}
     
     /* Inactive Sidebar Buttons - Pure macOS Flat Item (No White Card, No Border!) */
@@ -688,7 +700,7 @@ with st.sidebar:
     </div>
     """)
     
-    render_html('<div class="sidebar-section-header" style="padding-top: 6px;">OPERATIONS</div>')
+    render_html('<div class="sidebar-section-header" style="margin-top: 8px; margin-bottom: 10px; padding-bottom: 12px;">OPERATIONS</div>')
     
     nav_ops = [
         ("Dashboard", "Dashboard"),
@@ -703,7 +715,7 @@ with st.sidebar:
             st.session_state.active_nav = key
             st.rerun()
 
-    render_html('<div class="sidebar-section-header" style="padding-top: 18px;">AI & INTELLIGENCE</div>')
+    render_html('<div class="sidebar-section-header" style="margin-top: 26px; margin-bottom: 10px; padding-bottom: 12px;">AI & INTELLIGENCE</div>')
     
     if st.button("Regulatory Rules", key="nav_rules", use_container_width=True, type="primary" if st.session_state.active_nav == "Regulatory" else "secondary"):
         st.session_state.active_nav = "Regulatory"
