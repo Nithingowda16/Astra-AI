@@ -165,10 +165,10 @@ apple_css = f"""
     /* 3. APPLE CURVY BUTTONS & PILLS (MAIN AREA) */
     [data-testid="stMain"] div[data-testid="column"] button,
     [data-testid="stMain"] .stButton button,
-    [data-testid="stMain"] [data-testid="stForm"] button,
+    [data-testid="stMain"] [data-testid="stFormSubmitButton"] button,
     .main div[data-testid="column"] button,
     .main .stButton button,
-    .main [data-testid="stForm"] button,
+    .main [data-testid="stFormSubmitButton"] button,
     div[data-testid="stMainBlockContainer"] .stButton button {{
         border-radius: 9999px !important;
         font-size: 0.84rem !important;
@@ -219,10 +219,10 @@ apple_css = f"""
     
     /* Primary Apple System Blue Curvy Buttons (Main Area) */
     [data-testid="stMain"] button[kind="primary"],
-    [data-testid="stMain"] [data-testid="stForm"] button,
+    [data-testid="stMain"] [data-testid="stFormSubmitButton"] button,
     button[key="copilot_send_btn"],
     .main button[kind="primary"],
-    .main [data-testid="stForm"] button {{
+    .main [data-testid="stFormSubmitButton"] button {{
         background-color: var(--apple-blue) !important;
         color: #ffffff !important;
         border: 1px solid var(--apple-blue) !important;
@@ -513,14 +513,98 @@ apple_css = f"""
         max-width: 480px !important;
         margin: 0 auto !important;
     }}
-    [data-testid="stForm"] [data-testid="stTextInput"] input,
-    [data-testid="stForm"] [data-testid="stSelectbox"] div[data-baseweb="select"] {{
-        background: {'#f5f5f7' if current_theme == 'light' else '#2c2c2e'} !important;
-        color: var(--apple-text-primary) !important;
+    /* 6. APPLE INPUTS & SELECTBOXES (Zero Black Corners, Clean Apple Surfaces) */
+    [data-testid="stTextInput"] {{
+        background: transparent !important;
+        background-color: transparent !important;
+        margin-bottom: 2px !important;
+    }}
+    
+    /* Outer Input Container - holds the background, border, and squircle corners */
+    [data-testid="stTextInput"] div[data-baseweb="input"],
+    [data-testid="stTextInput"] div[data-baseweb="base-input"],
+    div[data-baseweb="input"],
+    div[data-baseweb="base-input"] {{
+        background-color: {'#f5f5f7' if current_theme == 'light' else '#1c1c1e'} !important;
+        background: {'#f5f5f7' if current_theme == 'light' else '#1c1c1e'} !important;
         border: 1px solid var(--apple-border) !important;
         border-radius: 12px !important;
-        padding: 8px 14px !important;
-        font-size: 0.92rem !important;
+        overflow: hidden !important;
+        box-shadow: none !important;
+        transition: border-color 0.2s ease, box-shadow 0.2s ease !important;
+    }}
+    
+    /* Focused Input Border - Apple System Blue Glow */
+    [data-testid="stTextInput"] div[data-baseweb="input"]:focus-within,
+    [data-testid="stTextInput"] div[data-baseweb="base-input"]:focus-within,
+    div[data-baseweb="input"]:focus-within {{
+        border-color: var(--apple-blue) !important;
+        box-shadow: 0 0 0 3px rgba(0, 113, 227, 0.2) !important;
+    }}
+    
+    /* Inner Native Input Field - completely transparent, filling the container */
+    [data-testid="stTextInput"] input,
+    div[data-baseweb="input"] input,
+    div[data-baseweb="base-input"] input {{
+        background: transparent !important;
+        background-color: transparent !important;
+        border: none !important;
+        border-radius: 0 !important;
+        outline: none !important;
+        box-shadow: none !important;
+        color: var(--apple-text-primary) !important;
+        padding: 9px 14px !important;
+        font-size: 0.9rem !important;
+        font-weight: 500 !important;
+        letter-spacing: -0.01em !important;
+    }}
+    
+    /* BaseWeb Selectbox - Apple Flat Surface */
+    [data-testid="stSelectbox"] div[data-baseweb="select"],
+    div[data-baseweb="select"] {{
+        background-color: {'#f5f5f7' if current_theme == 'light' else '#1c1c1e'} !important;
+        background: {'#f5f5f7' if current_theme == 'light' else '#1c1c1e'} !important;
+        border: 1px solid var(--apple-border) !important;
+        border-radius: 12px !important;
+        overflow: hidden !important;
+        box-shadow: none !important;
+    }}
+    
+    [data-testid="stSelectbox"] div[data-baseweb="select"] > div,
+    div[data-baseweb="select"] > div {{
+        background: transparent !important;
+        background-color: transparent !important;
+        border: none !important;
+        color: var(--apple-text-primary) !important;
+        padding: 4px 10px !important;
+    }}
+    
+    [data-testid="stSelectbox"] div[data-baseweb="select"] [role="combobox"],
+    div[data-baseweb="select"] [role="combobox"] {{
+        background: transparent !important;
+        background-color: transparent !important;
+        color: var(--apple-text-primary) !important;
+        font-size: 0.9rem !important;
+        font-weight: 500 !important;
+    }}
+    
+    /* Remove pill button styling from selectbox chevron */
+    [data-testid="stSelectbox"] button,
+    div[data-baseweb="select"] button {{
+        background: transparent !important;
+        background-color: transparent !important;
+        border: none !important;
+        box-shadow: none !important;
+        border-radius: 0 !important;
+        padding: 0 6px !important;
+        width: auto !important;
+        min-width: 0 !important;
+        color: var(--apple-text-secondary) !important;
+    }}
+    [data-testid="stSelectbox"] svg,
+    div[data-baseweb="select"] svg {{
+        fill: var(--apple-text-secondary) !important;
+        color: var(--apple-text-secondary) !important;
     }}
 
     /* 7. ALERT ROWS */
