@@ -68,7 +68,7 @@ current_bg_b64 = bg_light_b64 if current_theme == "light" else bg_dark_b64
 is_auth = st.session_state.authenticated
 
 # ------------------------------------------------------------------------------
-# 4. Master Theme Stylesheet (Exact Enterprise Tokens, Zero Emojis)
+# 4. Master Theme Stylesheet (Complete Ligature & Contrast Fixes)
 # ------------------------------------------------------------------------------
 css_tokens = f"""
 <style>
@@ -78,12 +78,24 @@ css_tokens = f"""
         font-family: 'SF Pro Display', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif !important;
     }}
     
-    header[data-testid="stHeader"] {{
-        background: transparent !important;
-        z-index: 1;
+    /* 1. HIDE ALL BROKEN MATERIAL LIGATURE TEXTS (eliminates keyboard_double_ and visibili) */
+    [data-testid="stSidebarCollapseButton"],
+    [data-testid="collapsedControl"],
+    button[aria-label="Close sidebar"],
+    button[aria-label="Open sidebar"],
+    [data-testid="stIconMaterial"],
+    button[aria-label="Show password text"],
+    button[aria-label="Hide password text"],
+    [data-testid="stTextInput"] button {{
+        display: none !important;
     }}
+    
+    header[data-testid="stHeader"] {{
+        display: none !important;
+    }}
+    
     .block-container {{
-        padding-top: 1rem !important;
+        padding-top: 1.5rem !important;
         padding-bottom: 2.5rem !important;
         max-width: 1440px !important;
     }}
@@ -109,7 +121,7 @@ css_tokens = f"""
         {'background-image: url("data:image/png;base64,' + current_bg_b64 + '") !important; background-size: cover !important; background-position: center !important; background-attachment: fixed !important;' if not is_auth else 'background-image: none !important;'}
     }}
     
-    /* High-contrast typography inheritance */
+    /* High-contrast typography */
     [data-testid="stAppViewContainer"] h1,
     [data-testid="stAppViewContainer"] h2,
     [data-testid="stAppViewContainer"] h3,
@@ -121,7 +133,7 @@ css_tokens = f"""
         color: var(--text-primary);
     }}
     
-    /* Sidebar Styling */
+    /* 2. SIDEBAR NAVIGATION STYLING (Left-aligned, crisp, tight gaps) */
     [data-testid="stSidebar"] {{
         background-color: var(--sidebar-bg) !important;
         border-right: 1px solid var(--border-color) !important;
@@ -131,50 +143,161 @@ css_tokens = f"""
     [data-testid="stSidebar"] div {{
         color: var(--text-primary);
     }}
+    [data-testid="stSidebar"] [data-testid="stVerticalBlock"] {{
+        gap: 0.15rem !important;
+    }}
     [data-testid="stSidebar"] button {{
-        border-radius: 10px !important;
-        text-align: left !important;
-        font-weight: 600 !important;
+        width: 100% !important;
+        border-radius: 8px !important;
+        padding: 8px 14px !important;
         font-size: 0.88rem !important;
-        padding: 9px 14px !important;
+        font-weight: 500 !important;
         border: 1px solid transparent !important;
-        transition: all 0.15s ease !important;
+        text-align: left !important;
+        justify-content: flex-start !important;
+        margin: 0 !important;
+        box-shadow: none !important;
+        background: transparent !important;
+    }}
+    [data-testid="stSidebar"] button div,
+    [data-testid="stSidebar"] button p {{
+        text-align: left !important;
+        justify-content: flex-start !important;
+        width: 100% !important;
+        margin: 0 !important;
     }}
     [data-testid="stSidebar"] button[kind="secondary"] {{
         background: transparent !important;
         color: var(--text-secondary) !important;
     }}
+    [data-testid="stSidebar"] button[kind="secondary"] p {{
+        color: var(--text-secondary) !important;
+    }}
     [data-testid="stSidebar"] button[kind="secondary"]:hover {{
         background: var(--card-hover) !important;
         color: var(--text-primary) !important;
-        border-color: var(--border-color) !important;
+    }}
+    [data-testid="stSidebar"] button[kind="secondary"]:hover p {{
+        color: var(--text-primary) !important;
     }}
     [data-testid="stSidebar"] button[kind="primary"] {{
         background: #2563eb !important;
         color: #ffffff !important;
-        box-shadow: 0 2px 8px rgba(37, 99, 235, 0.28) !important;
+        font-weight: 700 !important;
+    }}
+    [data-testid="stSidebar"] button[kind="primary"] p {{
+        color: #ffffff !important;
+    }}
+
+    /* 3. MAIN AREA BUTTONS (Prompt pills in Copilot, Actions) */
+    button[key^="sp_btn_"],
+    div[data-testid="column"] button:not([kind="primary"]) {{
+        background-color: {'#ffffff' if current_theme == 'light' else '#181820'} !important;
+        color: {'#0f172a' if current_theme == 'light' else '#f8fafc'} !important;
+        border: 1px solid {'#cbd5e1' if current_theme == 'light' else '#2f2f38'} !important;
+        border-radius: 9999px !important;
+        padding: 9px 16px !important;
+        font-size: 0.83rem !important;
+        font-weight: 500 !important;
+        text-align: left !important;
+        justify-content: flex-start !important;
+        box-shadow: 0 1px 3px rgba(0,0,0,0.04) !important;
+        transition: all 0.15s ease !important;
+        margin-bottom: 6px !important;
+        width: 100% !important;
+    }}
+    button[key^="sp_btn_"] p,
+    div[data-testid="column"] button:not([kind="primary"]) p {{
+        color: {'#0f172a' if current_theme == 'light' else '#f8fafc'} !important;
+        text-align: left !important;
+        margin: 0 !important;
+    }}
+    button[key^="sp_btn_"]:hover,
+    div[data-testid="column"] button:not([kind="primary"]):hover {{
+        background-color: {'#f1f5f9' if current_theme == 'light' else '#22222c'} !important;
+        border-color: #2563eb !important;
+        color: #2563eb !important;
+    }}
+    button[key^="sp_btn_"]:hover p,
+    div[data-testid="column"] button:not([kind="primary"]):hover p {{
+        color: #2563eb !important;
     }}
     
-    /* Floating Auth Card */
+    /* 4. PRIMARY BUTTONS (Blue, crisp, never harsh red) */
+    button[kind="primary"],
+    [data-testid="stForm"] button,
+    button[key="copilot_send_btn"] {{
+        background-color: #2563eb !important;
+        color: #ffffff !important;
+        border: 1px solid #2563eb !important;
+        border-radius: 10px !important;
+        font-weight: 700 !important;
+        text-align: center !important;
+        justify-content: center !important;
+        box-shadow: 0 2px 8px rgba(37, 99, 235, 0.28) !important;
+    }}
+    button[kind="primary"] p,
+    [data-testid="stForm"] button p,
+    button[key="copilot_send_btn"] p {{
+        color: #ffffff !important;
+        text-align: center !important;
+        white-space: nowrap !important;
+    }}
+
+    /* 5. AUTH TAB BUTTONS (Sign In vs Sign Up) */
+    button[key="pill_signin"],
+    button[key="pill_signup"] {{
+        border-radius: 9999px !important;
+        font-weight: 700 !important;
+        font-size: 0.88rem !important;
+        padding: 9px 18px !important;
+        text-align: center !important;
+        justify-content: center !important;
+    }}
+    button[key="pill_signin"] p,
+    button[key="pill_signup"] p {{
+        text-align: center !important;
+    }}
+
+    /* 6. TOP THEME BUTTON (High contrast, clearly visible) */
+    button[key="top_theme_btn"] {{
+        background: {'#ffffff' if current_theme == 'light' else '#181820'} !important;
+        color: {'#0f172a' if current_theme == 'light' else '#f8fafc'} !important;
+        border: 1px solid {'#cbd5e1' if current_theme == 'light' else '#33333e'} !important;
+        border-radius: 9999px !important;
+        font-size: 0.78rem !important;
+        font-weight: 700 !important;
+        padding: 5px 14px !important;
+        justify-content: center !important;
+        text-align: center !important;
+        box-shadow: 0 1px 3px rgba(0,0,0,0.06) !important;
+    }}
+    button[key="top_theme_btn"] p {{
+        color: {'#0f172a' if current_theme == 'light' else '#f8fafc'} !important;
+        text-align: center !important;
+    }}
+
+    /* 7. FLOATING AUTH CARD */
     [data-testid="stForm"] {{
         background: {'rgba(255, 255, 255, 0.98)' if current_theme == 'light' else 'rgba(18, 18, 23, 0.96)'} !important;
         border: 1px solid {'rgba(0, 0, 0, 0.1)' if current_theme == 'light' else 'rgba(255, 255, 255, 0.12)'} !important;
         border-radius: 24px !important;
-        padding: 36px 40px !important;
+        padding: 34px 38px 28px 38px !important;
         box-shadow: {'0 24px 50px -12px rgba(0, 0, 0, 0.12)' if current_theme == 'light' else '0 24px 50px -12px rgba(0, 0, 0, 0.85)'} !important;
         max-width: 480px !important;
         margin: 0 auto !important;
     }}
-    [data-testid="stForm"] [data-testid="stTextInput"] input {{
+    [data-testid="stForm"] [data-testid="stTextInput"] input,
+    [data-testid="stForm"] [data-testid="stSelectbox"] div[data-baseweb="select"] {{
         background: {'#f8fafc' if current_theme == 'light' else '#181820'} !important;
         color: var(--text-primary) !important;
         border: 1px solid var(--border-color) !important;
         border-radius: 10px !important;
-        padding: 10px 14px !important;
+        padding: 6px 12px !important;
         font-size: 0.92rem !important;
     }}
     
-    /* KPI Card Style */
+    /* 8. KPI STAT CARDS */
     .kpi-stat-card {{
         background: var(--card-bg);
         border: 1px solid var(--border-color);
@@ -212,7 +335,7 @@ css_tokens = f"""
         color: var(--text-muted);
     }}
     
-    /* Alert Rows */
+    /* 9. ALERT ROWS */
     .alert-row {{
         display: flex;
         align-items: center;
@@ -262,7 +385,7 @@ css_tokens = f"""
         margin-right: 8px;
     }}
     
-    /* Copilot Chat UI */
+    /* 10. COPILOT CHAT BUBBLES */
     .chat-bubble-copilot {{
         background: var(--card-bg);
         border: 1px solid var(--border-color);
@@ -299,17 +422,7 @@ css_tokens = f"""
 st.markdown(css_tokens, unsafe_allow_html=True)
 
 # ------------------------------------------------------------------------------
-# 5. Top Bar: Theme Switcher & Status (Zero Emojis)
-# ------------------------------------------------------------------------------
-top_col1, top_col2 = st.columns([10, 2])
-with top_col2:
-    target_theme = "Dark Mode" if current_theme == "light" else "Light Mode"
-    if st.button(target_theme, key="top_theme_btn", use_container_width=True):
-        st.session_state.theme = "dark" if current_theme == "light" else "light"
-        st.rerun()
-
-# ------------------------------------------------------------------------------
-# 6. AUTHENTICATION GATEWAY (Zero Emojis, Crisp Floating Card)
+# 5. AUTHENTICATION GATEWAY (Zero Emojis, Crisp Floating Card, No Bottom Badges)
 # ------------------------------------------------------------------------------
 if not st.session_state.authenticated:
     _, auth_center_col, _ = st.columns([1, 1.3, 1])
@@ -387,32 +500,18 @@ if not st.session_state.authenticated:
                     st.session_state.user_name = su_fullname
                     st.session_state.user_role = su_role
                     st.rerun()
-                    
-        # Bottom Security Certifications (Zero Emojis)
-        render_html("""
-        <div style="margin-top: 18px; text-align: center; border-top: 1px solid var(--border-color); padding-top: 14px;">
-            <div style="display: flex; justify-content: center; gap: 12px; flex-wrap: wrap;">
-                <span style="font-size: 0.72rem; font-weight: 600; color: var(--text-muted); background: var(--card-hover); padding: 4px 10px; border-radius: 6px; border: 1px solid var(--border-color);">256-BIT TLS ENCRYPTION</span>
-                <span style="font-size: 0.72rem; font-weight: 600; color: var(--text-muted); background: var(--card-hover); padding: 4px 10px; border-radius: 6px; border: 1px solid var(--border-color);">REGTECH AUDIT CERTIFIED</span>
-                <span style="font-size: 0.72rem; font-weight: 600; color: var(--text-muted); background: var(--card-hover); padding: 4px 10px; border-radius: 6px; border: 1px solid var(--border-color);">DETERMINISTIC AI ENGINE</span>
-            </div>
-            <div style="font-size: 0.7rem; color: var(--text-muted); margin-top: 10px;">
-                Bank-Grade Compliance Gateway • Snowflake Cortex Engine Integrated
-            </div>
-        </div>
-        """)
 
     st.stop()
 
 # ------------------------------------------------------------------------------
-# 7. AUTHENTICATED NAVIGATION & SIDEBAR (Zero Emojis)
+# 6. AUTHENTICATED NAVIGATION & SIDEBAR (Zero Emojis, Clean Left-Aligned)
 # ------------------------------------------------------------------------------
 
 with st.sidebar:
     # Brand Header
     logo_side_html = f'<img src="data:image/png;base64,{current_logo_b64}" width="34" height="34" style="object-fit: contain; vertical-align: middle; margin-right: 10px;" />' if current_logo_b64 else ''
     render_html(f"""
-    <div style="display: flex; align-items: center; padding: 6px 0 14px 0; border-bottom: 1px solid var(--border-color); margin-bottom: 14px;">
+    <div style="display: flex; align-items: center; padding: 4px 0 14px 0; border-bottom: 1px solid var(--border-color); margin-bottom: 12px;">
         {logo_side_html}
         <div>
             <div style="font-size: 1.15rem; font-weight: 800; color: var(--text-primary); letter-spacing: -0.02em;">Astra AI</div>
@@ -421,7 +520,7 @@ with st.sidebar:
     </div>
     """)
     
-    render_html('<div style="font-size: 0.72rem; font-weight: 700; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.08em; margin: 10px 0 6px 0;">OPERATIONS</div>')
+    render_html('<div style="font-size: 0.7rem; font-weight: 700; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.08em; margin: 8px 0 4px 0;">OPERATIONS</div>')
     
     nav_ops = [
         ("Dashboard", "Dashboard"),
@@ -436,7 +535,7 @@ with st.sidebar:
             st.session_state.active_nav = key
             st.rerun()
 
-    render_html('<div style="font-size: 0.72rem; font-weight: 700; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.08em; margin: 16px 0 6px 0;">AI & INTELLIGENCE</div>')
+    render_html('<div style="font-size: 0.7rem; font-weight: 700; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.08em; margin: 14px 0 4px 0;">AI & INTELLIGENCE</div>')
     
     if st.button("Regulatory Rules", key="nav_rules", use_container_width=True, type="primary" if st.session_state.active_nav == "Regulatory" else "secondary"):
         st.session_state.active_nav = "Regulatory"
@@ -453,7 +552,7 @@ with st.sidebar:
     user_name = getattr(st.session_state, "user_name", "Senior Risk Officer")
     user_role = getattr(st.session_state, "user_role", "Senior Risk Officer")
     render_html(f"""
-    <div style="background: var(--card-bg); border: 1px solid var(--border-color); border-radius: 12px; padding: 12px; margin-top: 16px;">
+    <div style="background: var(--card-bg); border: 1px solid var(--border-color); border-radius: 12px; padding: 12px; margin-top: 14px;">
         <div style="font-size: 0.84rem; font-weight: 700; color: var(--text-primary);">{user_name}</div>
         <div style="font-size: 0.72rem; color: var(--text-muted); margin-top: 2px;">{user_role}</div>
         <div style="margin-top: 6px;">
@@ -466,24 +565,31 @@ with st.sidebar:
         st.session_state.authenticated = False
         st.rerun()
 
-# --- TOP BREADCRUMB & STATUS ---
-bc_col1, bc_col2 = st.columns([8, 2])
-with bc_col1:
+# --- TOP HEADER ROW (Breadcrumbs + Theme Switcher + Live Status) ---
+h_c1, h_c2, h_c3 = st.columns([6, 2, 2])
+with h_c1:
     render_html(f"""
-    <div style="font-size: 0.88rem; color: var(--text-secondary); margin-bottom: 12px; font-weight: 500;">
-        <span>Astra AI</span> <span style="opacity: 0.4;">/</span> <strong style="color: var(--text-primary);">{st.session_state.active_nav}</strong>
+    <div style="font-size: 0.9rem; color: var(--text-secondary); padding-top: 6px; font-weight: 500;">
+        <span>Astra AI</span> <span style="opacity: 0.35;">/</span> <strong style="color: var(--text-primary);">{st.session_state.active_nav}</strong>
     </div>
     """)
-with bc_col2:
+with h_c2:
+    target_theme = "Dark Mode" if current_theme == "light" else "Light Mode"
+    if st.button(target_theme, key="top_theme_btn", use_container_width=True):
+        st.session_state.theme = "dark" if current_theme == "light" else "light"
+        st.rerun()
+with h_c3:
     render_html("""
-    <div style="text-align: right; display: flex; align-items: center; justify-content: flex-end; gap: 8px; font-size: 0.78rem; font-weight: 700; color: #10b981;">
+    <div style="text-align: right; display: flex; align-items: center; justify-content: flex-end; gap: 8px; font-size: 0.78rem; font-weight: 700; color: #10b981; padding-top: 8px;">
         <span style="display: inline-block; width: 8px; height: 8px; border-radius: 50%; background: #10b981; box-shadow: 0 0 6px #10b981;"></span>
         <span>Live Engine Connected</span>
     </div>
     """)
 
+st.write("")
+
 # ------------------------------------------------------------------------------
-# 8. VIEW: OPERATIONAL DASHBOARD
+# 7. VIEW: OPERATIONAL DASHBOARD
 # ------------------------------------------------------------------------------
 if st.session_state.active_nav == "Dashboard":
     # 1. TOP ACTIVE ALERT BANNER
@@ -770,7 +876,7 @@ if st.session_state.active_nav == "Dashboard":
         """)
 
 # ------------------------------------------------------------------------------
-# 9. VIEW: REWORKED NEURAL COPILOT ASSISTANT (Matching React Copilot.jsx, Zero Emojis)
+# 8. VIEW: REWORKED NEURAL COPILOT ASSISTANT (Matching React Copilot.jsx, Zero Emojis)
 # ------------------------------------------------------------------------------
 elif st.session_state.active_nav == "Copilot":
     render_html("""
@@ -896,18 +1002,24 @@ elif st.session_state.active_nav == "Copilot":
                 </div>
                 """)
 
-        # Clean Chat Input Box
-        with st.form("copilot_chat_form", clear_on_submit=True):
-            user_typed = st.text_input("Message Copilot", placeholder="Ask Astra AI regulatory audit question or enter transaction ID...", label_visibility="collapsed")
-            send_c1, send_c2 = st.columns([5, 1])
-            with send_c2:
-                send_clicked = st.form_submit_button("Send Query", use_container_width=True, type="primary")
-            if send_clicked and user_typed:
-                st.session_state.copilot_query = user_typed
-                st.rerun()
+        # Clean Chat Input Row (No st.form, no red button)
+        in_c1, in_c2 = st.columns([5, 1.2])
+        with in_c1:
+            user_typed = st.text_input(
+                "Message Copilot", 
+                placeholder="Ask Astra AI regulatory audit question or transaction ID (e.g. TXN-1024)...", 
+                label_visibility="collapsed", 
+                key="copilot_text_input"
+            )
+        with in_c2:
+            send_clicked = st.button("Send Query", key="copilot_send_btn", type="primary", use_container_width=True)
+
+        if send_clicked and user_typed:
+            st.session_state.copilot_query = user_typed
+            st.rerun()
 
 # ------------------------------------------------------------------------------
-# 10. VIEW: TRANSACTIONS & ALERTS (Zero Emojis)
+# 9. VIEW: TRANSACTIONS & ALERTS (Zero Emojis)
 # ------------------------------------------------------------------------------
 elif st.session_state.active_nav in ["Transactions", "Alerts"]:
     render_html("""
@@ -930,7 +1042,7 @@ elif st.session_state.active_nav in ["Transactions", "Alerts"]:
     st.dataframe(tx_df, use_container_width=True)
 
 # ------------------------------------------------------------------------------
-# 11. VIEW: CUSTOMERS (Zero Emojis)
+# 10. VIEW: CUSTOMERS (Zero Emojis)
 # ------------------------------------------------------------------------------
 elif st.session_state.active_nav == "Customers":
     render_html("""
@@ -951,7 +1063,7 @@ elif st.session_state.active_nav == "Customers":
     st.dataframe(cust_df, use_container_width=True)
 
 # ------------------------------------------------------------------------------
-# 12. VIEW: REGULATORY RULES & INVESTIGATIONS (Zero Emojis)
+# 11. VIEW: REGULATORY RULES & INVESTIGATIONS (Zero Emojis)
 # ------------------------------------------------------------------------------
 elif st.session_state.active_nav == "Regulatory":
     render_html("""
