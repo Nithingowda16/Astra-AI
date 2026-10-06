@@ -363,6 +363,40 @@ apple_css = f"""
         color: #ffffff !important;
     }}
 
+    /* Sidebar iOS Theme Toggle Switch (macOS Settings Row) */
+    [data-testid="stSidebar"] [data-testid="stToggle"] {{
+        width: 100% !important;
+        display: flex !important;
+        justify-content: space-between !important;
+        align-items: center !important;
+        padding: 8px 12px !important;
+        background: var(--apple-card) !important;
+        border: 1px solid var(--apple-border) !important;
+        border-radius: 10px !important;
+        margin-top: 6px !important;
+        margin-bottom: 6px !important;
+        box-sizing: border-box !important;
+        box-shadow: 0 1px 3px rgba(0, 0, 0, 0.02) !important;
+    }}
+    [data-testid="stSidebar"] [data-testid="stToggle"] label {{
+        width: 100% !important;
+        display: flex !important;
+        justify-content: space-between !important;
+        align-items: center !important;
+        flex-direction: row-reverse !important;
+        font-size: 0.82rem !important;
+        font-weight: 600 !important;
+        color: var(--apple-text-primary) !important;
+        cursor: pointer !important;
+        margin: 0 !important;
+    }}
+    [data-testid="stSidebar"] [data-testid="stToggle"] label p {{
+        font-size: 0.82rem !important;
+        font-weight: 600 !important;
+        color: var(--apple-text-primary) !important;
+        margin: 0 !important;
+    }}
+
     /* Sign Out Action Button in Sidebar */
     [data-testid="stSidebar"] [data-testid="stVerticalBlock"] > div:last-child button,
     [data-testid="stSidebar"] button[key="sidebar_logout_btn"],
@@ -711,12 +745,19 @@ with st.sidebar:
     </div>
     """)
     
+    # Apple iOS Theme Toggle Bar (Directly Above Sign Out in Side Nav)
+    is_dark_active = st.session_state.theme == "dark"
+    theme_toggle_val = st.toggle("Dark Mode", value=is_dark_active, key="sidebar_theme_toggle")
+    if theme_toggle_val != is_dark_active:
+        st.session_state.theme = "dark" if theme_toggle_val else "light"
+        st.rerun()
+
     if st.button("Sign Out", key="sidebar_logout_btn", use_container_width=True):
         st.session_state.authenticated = False
         st.rerun()
 
-# --- TOP HEADER ROW (Breadcrumbs + Apple iOS Toggle Switch + Live Status) ---
-h_c1, h_c2, h_c3 = st.columns([6, 2.2, 2])
+# --- TOP HEADER ROW (Breadcrumbs + Live Engine Status) ---
+h_c1, h_c2 = st.columns([7.5, 2.5])
 with h_c1:
     render_html(f"""
     <div style="font-size: 0.92rem; color: var(--apple-text-secondary); padding-top: 5px; font-weight: 500; letter-spacing: -0.015em;">
@@ -725,14 +766,6 @@ with h_c1:
     """)
 
 with h_c2:
-    # NATIVE APPLE TOGGLE SWITCH FOR LIGHT/DARK MODE
-    is_dark_active = st.session_state.theme == "dark"
-    theme_toggle_val = st.toggle("Dark Mode", value=is_dark_active, key="apple_header_theme_toggle")
-    if theme_toggle_val != is_dark_active:
-        st.session_state.theme = "dark" if theme_toggle_val else "light"
-        st.rerun()
-
-with h_c3:
     render_html("""
     <div style="text-align: right; display: flex; align-items: center; justify-content: flex-end; gap: 8px; font-size: 0.78rem; font-weight: 600; color: var(--apple-green); padding-top: 5px;">
         <span style="display: inline-block; width: 8px; height: 8px; border-radius: 50%; background: #34c759; box-shadow: 0 0 8px rgba(52, 199, 89, 0.6);"></span>
