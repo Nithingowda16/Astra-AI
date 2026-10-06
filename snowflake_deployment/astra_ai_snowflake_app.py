@@ -1,6 +1,6 @@
 # ==============================================================================
 # Astra AI — Enterprise Risk & Regulatory Intelligence Platform
-# Pixel-Perfect Implementation matching React Production Design
+# Zero-Emoji Modern Enterprise Architecture & Reworked High-Contrast UI
 # ==============================================================================
 
 import streamlit as st
@@ -8,17 +8,17 @@ import pandas as pd
 import numpy as np
 import base64
 import os
+
+# Helper to render clean HTML without CommonMark code block parsing
 def render_html(html_str):
-    # Strip leading whitespace on every line to prevent CommonMark from parsing HTML as indented code blocks (<pre><code>)
     clean = "\n".join([line.lstrip() for line in html_str.splitlines() if line.strip()])
     st.markdown(clean, unsafe_allow_html=True)
 
 # ------------------------------------------------------------------------------
-# 1. Page Configuration
+# 1. Page Configuration (Zero Emojis)
 # ------------------------------------------------------------------------------
 st.set_page_config(
-    page_title="Astra AI — Risk & Regulatory Intelligence",
-    page_icon="🛡️",
+    page_title="Astra AI - Risk & Regulatory Intelligence",
     layout="wide",
     initial_sidebar_state="expanded"
 )
@@ -38,6 +38,14 @@ if "selected_txn" not in st.session_state:
     st.session_state.selected_txn = None
 if "copilot_query" not in st.session_state:
     st.session_state.copilot_query = ""
+if "copilot_history" not in st.session_state:
+    st.session_state.copilot_history = [
+        {
+            "role": "assistant",
+            "title": "INVESTIGATION COPILOT",
+            "content": "Greetings, Senior Risk Officer. I am Astra AI. I have correlated your live transaction ledger, 14 flagged events, and high-risk customer profiles against the Regulatory Knowledge Base. How can I assist with your statutory investigation or SAR filing?"
+        }
+    ]
 
 # ------------------------------------------------------------------------------
 # 3. Assets Loader (Base64)
@@ -57,191 +65,122 @@ bg_light_b64 = get_asset_b64("frontend/public/assets/login-bg-light.png")
 current_theme = st.session_state.theme
 current_logo_b64 = logo_light_b64 if current_theme == "light" else logo_dark_b64
 current_bg_b64 = bg_light_b64 if current_theme == "light" else bg_dark_b64
+is_auth = st.session_state.authenticated
 
 # ------------------------------------------------------------------------------
-# 4. Master Theme Stylesheet (Exact tokens from index.css)
+# 4. Master Theme Stylesheet (Exact Enterprise Tokens, Zero Emojis)
 # ------------------------------------------------------------------------------
-st.markdown(f"""
+css_tokens = f"""
 <style>
     @import url('https://fonts.cdnfonts.com/css/sf-pro-display');
     
     html, body, [class*="css"], [class*="st-"] {{
-        font-family: 'SF Pro Display', -apple-system, BlinkMacSystemFont, "SF Pro", "SF Pro Text", "Helvetica Neue", "Segoe UI", Roboto, sans-serif !important;
+        font-family: 'SF Pro Display', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif !important;
     }}
     
-    /* Hide default Streamlit header and padding */
     header[data-testid="stHeader"] {{
         background: transparent !important;
         z-index: 1;
     }}
     .block-container {{
         padding-top: 1rem !important;
-        padding-bottom: 2rem !important;
+        padding-bottom: 2.5rem !important;
         max-width: 1440px !important;
     }}
     
-    /* Theme Tokens */
+    /* Theme Variables */
     :root {{
-        --bg-color: {'#ffffff' if current_theme == 'light' else '#09090b'};
-        --card-bg: {'#ffffff' if current_theme == 'light' else '#0e0e11'};
-        --card-hover: {'#f4f4f5' if current_theme == 'light' else '#18181b'};
-        --border-color: {'#e4e4e7' if current_theme == 'light' else '#27272a'};
-        --text-primary: {'#09090b' if current_theme == 'light' else '#ffffff'};
-        --text-secondary: {'#52525b' if current_theme == 'light' else '#a1a1aa'};
-        --text-muted: {'#a1a1aa' if current_theme == 'light' else '#71717a'};
-        --input-bg: {'#ffffff' if current_theme == 'light' else '#121215'};
-        --btn-primary-bg: {'#1d1d1f' if current_theme == 'light' else '#ffffff'};
-        --btn-primary-text: {'#ffffff' if current_theme == 'light' else '#000000'};
+        --bg-color: {'#f8fafc' if current_theme == 'light' else '#09090b'};
+        --sidebar-bg: {'#ffffff' if current_theme == 'light' else '#0d0d12'};
+        --card-bg: {'#ffffff' if current_theme == 'light' else '#121217'};
+        --card-hover: {'#f1f5f9' if current_theme == 'light' else '#1a1a22'};
+        --border-color: {'#e2e8f0' if current_theme == 'light' else '#26262e'};
+        --text-primary: {'#0f172a' if current_theme == 'light' else '#f8fafc'};
+        --text-secondary: {'#475569' if current_theme == 'light' else '#a1a1aa'};
+        --text-muted: {'#94a3b8' if current_theme == 'light' else '#71717a'};
+        --accent-blue: #2563eb;
+        --accent-cyan: #0284c7;
+        --input-bg: {'#ffffff' if current_theme == 'light' else '#18181f'};
     }}
     
-    /* Auth Page Wallpaper Container */
+    /* Global App View Container */
     [data-testid="stAppViewContainer"] {{
-        background-image: url('data:image/png;base64,{current_bg_b64}') !important;
-        background-size: cover !important;
-        background-position: center !important;
-        background-attachment: fixed !important;
+        background-color: var(--bg-color) !important;
+        {'background-image: url("data:image/png;base64,' + current_bg_b64 + '") !important; background-size: cover !important; background-position: center !important; background-attachment: fixed !important;' if not is_auth else 'background-image: none !important;'}
     }}
-    [data-testid="stHeader"] {{
+    
+    /* High-contrast typography inheritance */
+    [data-testid="stAppViewContainer"] h1,
+    [data-testid="stAppViewContainer"] h2,
+    [data-testid="stAppViewContainer"] h3,
+    [data-testid="stAppViewContainer"] h4,
+    [data-testid="stAppViewContainer"] p,
+    [data-testid="stAppViewContainer"] span,
+    [data-testid="stAppViewContainer"] label,
+    [data-testid="stMarkdownContainer"] p {{
+        color: var(--text-primary);
+    }}
+    
+    /* Sidebar Styling */
+    [data-testid="stSidebar"] {{
+        background-color: var(--sidebar-bg) !important;
+        border-right: 1px solid var(--border-color) !important;
+    }}
+    [data-testid="stSidebar"] p,
+    [data-testid="stSidebar"] span,
+    [data-testid="stSidebar"] div {{
+        color: var(--text-primary);
+    }}
+    [data-testid="stSidebar"] button {{
+        border-radius: 10px !important;
+        text-align: left !important;
+        font-weight: 600 !important;
+        font-size: 0.88rem !important;
+        padding: 9px 14px !important;
+        border: 1px solid transparent !important;
+        transition: all 0.15s ease !important;
+    }}
+    [data-testid="stSidebar"] button[kind="secondary"] {{
         background: transparent !important;
+        color: var(--text-secondary) !important;
+    }}
+    [data-testid="stSidebar"] button[kind="secondary"]:hover {{
+        background: var(--card-hover) !important;
+        color: var(--text-primary) !important;
+        border-color: var(--border-color) !important;
+    }}
+    [data-testid="stSidebar"] button[kind="primary"] {{
+        background: #2563eb !important;
+        color: #ffffff !important;
+        box-shadow: 0 2px 8px rgba(37, 99, 235, 0.28) !important;
     }}
     
-    /* Ensure no overlay is blurring content */
-    .auth-bg-layer, .auth-bg-overlay {{
-        display: none !important;
-    }}
-    
-    /* Floating Auth Card (Crisp, zero blur) */
+    /* Floating Auth Card */
     [data-testid="stForm"] {{
-        background: {'rgba(255, 255, 255, 0.96)' if current_theme == 'light' else 'rgba(14, 14, 17, 0.92)'} !important;
-        border: 1px solid {'rgba(0, 0, 0, 0.08)' if current_theme == 'light' else 'rgba(255, 255, 255, 0.15)'} !important;
-        border-radius: 28px !important;
-        padding: 34px 38px 28px 38px !important;
-        box-shadow: {'0 30px 60px -12px rgba(0, 0, 0, 0.14), 0 0 0 1px rgba(0, 0, 0, 0.04)' if current_theme == 'light' else '0 30px 60px -12px rgba(0, 0, 0, 0.9)'} !important;
+        background: {'rgba(255, 255, 255, 0.98)' if current_theme == 'light' else 'rgba(18, 18, 23, 0.96)'} !important;
+        border: 1px solid {'rgba(0, 0, 0, 0.1)' if current_theme == 'light' else 'rgba(255, 255, 255, 0.12)'} !important;
+        border-radius: 24px !important;
+        padding: 36px 40px !important;
+        box-shadow: {'0 24px 50px -12px rgba(0, 0, 0, 0.12)' if current_theme == 'light' else '0 24px 50px -12px rgba(0, 0, 0, 0.85)'} !important;
         max-width: 480px !important;
         margin: 0 auto !important;
     }}
-    
     [data-testid="stForm"] [data-testid="stTextInput"] input {{
-        background: {'#ffffff' if current_theme == 'light' else '#18181b'} !important;
-        color: {'#09090b' if current_theme == 'light' else '#ffffff'} !important;
-        border: 1px solid {'#e4e4e7' if current_theme == 'light' else '#27272a'} !important;
-        border-radius: 12px !important;
+        background: {'#f8fafc' if current_theme == 'light' else '#181820'} !important;
+        color: var(--text-primary) !important;
+        border: 1px solid var(--border-color) !important;
+        border-radius: 10px !important;
         padding: 10px 14px !important;
         font-size: 0.92rem !important;
-    }}
-    
-    [data-testid="stForm"] button[kind="primary"],
-    [data-testid="stForm"] button[kind="secondary"],
-    [data-testid="stForm"] button {{
-        background: {'#1d1d1f' if current_theme == 'light' else '#ffffff'} !important;
-        color: {'#ffffff' if current_theme == 'light' else '#000000'} !important;
-        border: none !important;
-        border-radius: 9999px !important;
-        padding: 10px 24px !important;
-        font-weight: 700 !important;
-        font-size: 0.95rem !important;
-        box-shadow: {'0 4px 14px rgba(0, 0, 0, 0.2)' if current_theme == 'light' else '0 4px 14px rgba(255, 255, 255, 0.3)'} !important;
-    }}
-    
-    .auth-logo-img {{
-        width: 64px;
-        height: 64px;
-        object-fit: contain;
-        margin: 0 auto 10px auto;
-        display: block;
-        filter: drop-shadow(0 4px 16px rgba(19, 214, 214, 0.45));
-    }}
-    
-    .auth-title-text {{
-        font-size: 2rem !important;
-        font-weight: 800 !important;
-        letter-spacing: -0.035em !important;
-        color: {'#09090b' if current_theme == 'light' else '#ffffff'} !important;
-        margin: 4px 0 16px 0 !important;
-        text-align: center;
-    }}
-    
-    /* Auth Pill Tabs */
-    .auth-tabs-pill {{
-        display: grid;
-        grid-template-columns: 1fr 1fr;
-        gap: 6px;
-        background: {'#f4f4f5' if current_theme == 'light' else '#18181b'};
-        padding: 4px;
-        border-radius: 9999px;
-        border: 1px solid var(--border-color);
-        margin-bottom: 22px;
-    }}
-    .auth-tab-item {{
-        padding: 8px 14px;
-        border-radius: 9999px;
-        font-size: 0.84rem;
-        font-weight: 600;
-        color: var(--text-secondary);
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        gap: 6px;
-        cursor: pointer;
-    }}
-    .auth-tab-item.active-signin {{
-        background: #2563eb;
-        color: #ffffff;
-        box-shadow: 0 2px 8px rgba(37, 99, 235, 0.3);
-    }}
-    .auth-tab-item.active-signup {{
-        background: #059669;
-        color: #ffffff;
-        box-shadow: 0 2px 8px rgba(5, 150, 105, 0.3);
-    }}
-    
-    /* Security Badges Pill */
-    .sec-badge {{
-        display: inline-flex;
-        align-items: center;
-        gap: 5px;
-        background: {'rgba(0, 0, 0, 0.04)' if current_theme == 'light' else 'rgba(255, 255, 255, 0.05)'};
-        border: 1px solid var(--border-color);
-        border-radius: 9999px;
-        padding: 4px 10px;
-        font-size: 0.72rem;
-        color: var(--text-secondary);
-        margin: 4px 3px;
-    }}
-
-    /* Top Active Alert Banner */
-    .active-alert-box {{
-        background: {'linear-gradient(90deg, rgba(29, 78, 216, 0.08), rgba(6, 182, 212, 0.05))' if current_theme == 'light' else 'linear-gradient(90deg, rgba(29, 78, 216, 0.22), rgba(6, 182, 212, 0.12))'};
-        border: 1px solid {'rgba(59, 130, 246, 0.3)' if current_theme == 'light' else 'rgba(59, 130, 246, 0.4)'};
-        border-radius: 16px;
-        padding: 16px 20px;
-        margin-bottom: 22px;
-        display: flex;
-        align-items: center;
-        justify-content: space-between;
-        gap: 16px;
-    }}
-    .alert-tag-red {{
-        background: rgba(239, 68, 68, 0.15);
-        color: #ef4444;
-        border: 1px solid rgba(239, 68, 68, 0.3);
-        padding: 2px 8px;
-        border-radius: 6px;
-        font-size: 0.72rem;
-        font-weight: 700;
-        letter-spacing: 0.05em;
-        text-transform: uppercase;
-        display: inline-block;
-        margin-bottom: 4px;
     }}
     
     /* KPI Card Style */
     .kpi-stat-card {{
         background: var(--card-bg);
         border: 1px solid var(--border-color);
-        border-radius: 20px;
+        border-radius: 18px;
         padding: 20px 22px;
-        box-shadow: {'0 2px 8px rgba(0, 0, 0, 0.04)' if current_theme == 'light' else '0 4px 16px rgba(0, 0, 0, 0.4)'};
+        box-shadow: {'0 2px 8px rgba(0, 0, 0, 0.03)' if current_theme == 'light' else '0 4px 16px rgba(0, 0, 0, 0.35)'};
         height: 100%;
         display: flex;
         flex-direction: column;
@@ -256,12 +195,12 @@ st.markdown(f"""
     .kpi-stat-label {{
         font-size: 0.78rem;
         font-weight: 700;
-        letter-spacing: 0.05em;
+        letter-spacing: 0.06em;
         text-transform: uppercase;
         color: var(--text-secondary);
     }}
     .kpi-stat-val {{
-        font-size: 2.1rem;
+        font-size: 2.15rem;
         font-weight: 800;
         letter-spacing: -0.03em;
         color: var(--text-primary);
@@ -273,12 +212,12 @@ st.markdown(f"""
         color: var(--text-muted);
     }}
     
-    /* Alert Stream Rows */
+    /* Alert Rows */
     .alert-row {{
         display: flex;
         align-items: center;
         justify-content: space-between;
-        padding: 12px 14px;
+        padding: 11px 12px;
         border-bottom: 1px solid var(--border-color);
         transition: background-color 0.15s ease;
     }}
@@ -290,232 +229,269 @@ st.markdown(f"""
     }}
     
     .badge-crit {{
-        background: rgba(239, 68, 68, 0.15);
+        background: rgba(239, 68, 68, 0.14);
         color: #ef4444;
         border: 1px solid rgba(239, 68, 68, 0.3);
         padding: 2px 7px;
         border-radius: 5px;
         font-size: 0.72rem;
         font-weight: 700;
-        margin-right: 10px;
+        letter-spacing: 0.04em;
+        margin-right: 8px;
     }}
     .badge-med {{
-        background: rgba(234, 179, 8, 0.15);
+        background: rgba(234, 179, 8, 0.14);
         color: #eab308;
         border: 1px solid rgba(234, 179, 8, 0.3);
         padding: 2px 7px;
         border-radius: 5px;
         font-size: 0.72rem;
         font-weight: 700;
-        margin-right: 10px;
+        letter-spacing: 0.04em;
+        margin-right: 8px;
     }}
     .badge-low {{
-        background: rgba(16, 185, 129, 0.15);
+        background: rgba(16, 185, 129, 0.14);
         color: #10b981;
         border: 1px solid rgba(16, 185, 129, 0.3);
         padding: 2px 7px;
         border-radius: 5px;
         font-size: 0.72rem;
         font-weight: 700;
-        margin-right: 10px;
+        letter-spacing: 0.04em;
+        margin-right: 8px;
     }}
     
-    /* Theme Toggle Switch Header */
-    .top-theme-switch {{
-        position: fixed;
-        top: 14px;
-        right: 20px;
-        z-index: 999;
+    /* Copilot Chat UI */
+    .chat-bubble-copilot {{
+        background: var(--card-bg);
+        border: 1px solid var(--border-color);
+        border-radius: 14px;
+        padding: 18px 22px;
+        margin-bottom: 14px;
+        box-shadow: {'0 2px 6px rgba(0,0,0,0.03)' if current_theme == 'light' else '0 3px 12px rgba(0,0,0,0.3)'};
+    }}
+    .chat-bubble-user {{
+        background: {'rgba(37, 99, 235, 0.08)' if current_theme == 'light' else 'rgba(37, 99, 235, 0.15)'};
+        border: 1px solid rgba(37, 99, 235, 0.28);
+        border-radius: 14px;
+        padding: 14px 18px;
+        margin-bottom: 14px;
+    }}
+    .chat-badge-copilot {{
+        display: inline-block;
+        font-size: 0.72rem;
+        font-weight: 800;
+        letter-spacing: 0.08em;
+        color: #0284c7;
+        margin-bottom: 8px;
+    }}
+    .chat-badge-user {{
+        display: inline-block;
+        font-size: 0.72rem;
+        font-weight: 800;
+        letter-spacing: 0.08em;
+        color: #2563eb;
+        margin-bottom: 6px;
     }}
 </style>
-""", unsafe_allow_html=True)
+"""
+st.markdown(css_tokens, unsafe_allow_html=True)
 
 # ------------------------------------------------------------------------------
-# 5. Top Theme Toggle Controller
+# 5. Top Bar: Theme Switcher & Status (Zero Emojis)
 # ------------------------------------------------------------------------------
-top_col1, top_col2 = st.columns([10, 1])
+top_col1, top_col2 = st.columns([10, 2])
 with top_col2:
-    theme_icon = "🌙" if current_theme == "light" else "☀️"
-    if st.button(f"{theme_icon} Theme", key="theme_toggle_btn", help="Switch between Light and Dark mode"):
+    target_theme = "Dark Mode" if current_theme == "light" else "Light Mode"
+    if st.button(target_theme, key="top_theme_btn", use_container_width=True):
         st.session_state.theme = "dark" if current_theme == "light" else "light"
         st.rerun()
 
 # ------------------------------------------------------------------------------
-# 6. AUTHENTICATION GATEWAY (SCREENSHOTS 1, 2, 4)
+# 6. AUTHENTICATION GATEWAY (Zero Emojis, Crisp Floating Card)
 # ------------------------------------------------------------------------------
 if not st.session_state.authenticated:
-    _, auth_center_col, _ = st.columns([1, 1.35, 1])
+    _, auth_center_col, _ = st.columns([1, 1.3, 1])
     
     with auth_center_col:
         st.write("")
         st.write("")
         
-        # Header with Logo & Title (Crisp, High Contrast)
-        logo_html = f'<img src="data:image/png;base64,{current_logo_b64}" class="auth-logo-img" alt="Astra AI" />' if current_logo_b64 else '<span style="font-size: 3.2rem;">⚡</span>'
+        logo_html = f'<img src="data:image/png;base64,{current_logo_b64}" style="width: 58px; height: 58px; object-fit: contain; margin: 0 auto 10px auto; display: block; filter: drop-shadow(0 4px 12px rgba(19, 214, 214, 0.35));" alt="Astra AI" />' if current_logo_b64 else ''
         
-        st.markdown(f"""
+        render_html(f"""
         <div style="text-align: center; margin-bottom: 16px;">
             {logo_html}
-            <h1 class="auth-title-text">Astra AI</h1>
+            <h1 style="font-size: 2rem; font-weight: 800; letter-spacing: -0.03em; color: var(--text-primary); margin: 0 0 4px 0;">Astra AI</h1>
+            <div style="font-size: 0.85rem; color: var(--text-secondary); font-weight: 500;">Risk, Fraud & Regulatory Intelligence Copilot</div>
         </div>
-        """, unsafe_allow_html=True)
+        """)
         
-        # Pill Tab Switcher: Sign In vs Sign Up
+        # Pill Tab Switcher
         tab_col1, tab_col2 = st.columns(2)
         with tab_col1:
-            if st.button("➔ Sign In", key="pill_signin", use_container_width=True, type="primary" if st.session_state.auth_tab == "signin" else "secondary"):
+            if st.button("Sign In", key="pill_signin", use_container_width=True, type="primary" if st.session_state.auth_tab == "signin" else "secondary"):
                 st.session_state.auth_tab = "signin"
                 st.rerun()
         with tab_col2:
-            if st.button("👤+ Sign Up", key="pill_signup", use_container_width=True, type="primary" if st.session_state.auth_tab == "signup" else "secondary"):
+            if st.button("Sign Up", key="pill_signup", use_container_width=True, type="primary" if st.session_state.auth_tab == "signup" else "secondary"):
                 st.session_state.auth_tab = "signup"
                 st.rerun()
-
+                
         st.write("")
         
-        # Form Container
+        # FORM: SIGN IN
         if st.session_state.auth_tab == "signin":
             with st.form("signin_form"):
-                st.markdown(f'<div style="font-size: 0.82rem; font-weight: 600; color: var(--text-secondary); margin-bottom: 4px;">👤 Username or Email Address</div>', unsafe_allow_html=True)
-                login_user = st.text_input("Username", value="analyst", label_visibility="collapsed")
+                render_html('<div style="font-size: 0.82rem; font-weight: 600; color: var(--text-secondary); margin-bottom: 4px;">Username or Email Address</div>')
+                in_user = st.text_input("Username or Email", value="senior.risk.officer@bank.internal", label_visibility="collapsed")
                 
-                st.markdown(f'<div style="font-size: 0.82rem; font-weight: 600; color: var(--text-secondary); margin-bottom: 4px; margin-top: 10px;">🔒 Password</div>', unsafe_allow_html=True)
-                login_pwd = st.text_input("Password", value="password", type="password", label_visibility="collapsed")
+                render_html('<div style="font-size: 0.82rem; font-weight: 600; color: var(--text-secondary); margin-bottom: 4px; margin-top: 10px;">Password</div>')
+                in_pwd = st.text_input("Password", value="••••••••••••", type="password", label_visibility="collapsed")
                 
                 st.write("")
-                submit_login = st.form_submit_button("➔ Sign In", use_container_width=True)
-                if submit_login:
+                submit_signin = st.form_submit_button("Authenticate Access", use_container_width=True, type="primary")
+                if submit_signin:
                     st.session_state.authenticated = True
-                    st.session_state.user_name = "Senior Risk Officer"
+                    st.session_state.user_name = in_user.split("@")[0].replace(".", " ").title() if "@" in in_user else in_user.title()
+                    st.session_state.user_role = "Senior Risk Officer"
                     st.rerun()
+        
+        # FORM: SIGN UP
         else:
             with st.form("signup_form"):
-                st.markdown(f'<div style="font-size: 0.82rem; font-weight: 600; color: var(--text-secondary); margin-bottom: 4px;">🪪 Full Name</div>', unsafe_allow_html=True)
-                reg_name = st.text_input("Full Name", value="Rachel Zane", label_visibility="collapsed")
+                render_html('<div style="font-size: 0.82rem; font-weight: 600; color: var(--text-secondary); margin-bottom: 4px;">Full Name</div>')
+                su_fullname = st.text_input("Full Name", value="Senior Risk Analyst", label_visibility="collapsed")
                 
-                c_u, c_e = st.columns(2)
-                with c_u:
-                    st.markdown(f'<div style="font-size: 0.82rem; font-weight: 600; color: var(--text-secondary); margin-bottom: 4px;">👤 Username</div>', unsafe_allow_html=True)
-                    reg_usr = st.text_input("Username", value="analyst", label_visibility="collapsed")
-                with c_e:
-                    st.markdown(f'<div style="font-size: 0.82rem; font-weight: 600; color: var(--text-secondary); margin-bottom: 4px;">✉️ Business Email</div>', unsafe_allow_html=True)
-                    reg_eml = st.text_input("Email", value="rachel@financial.corp", label_visibility="collapsed")
-                
-                c_p, c_r = st.columns(2)
-                with c_p:
-                    st.markdown(f'<div style="font-size: 0.82rem; font-weight: 600; color: var(--text-secondary); margin-bottom: 4px;">🔑 Password (min 6 chars)</div>', unsafe_allow_html=True)
-                    reg_pw = st.text_input("Password", value="password", type="password", label_visibility="collapsed")
-                with c_r:
-                    st.markdown(f'<div style="font-size: 0.82rem; font-weight: 600; color: var(--text-secondary); margin-bottom: 4px;">🛡️ Account Role</div>', unsafe_allow_html=True)
-                    reg_role = st.selectbox("Role", ["Senior Risk Officer", "Compliance Officer", "User (Standard Access)"], label_visibility="collapsed")
-                
+                f_c1, f_c2 = st.columns(2)
+                with f_c1:
+                    render_html('<div style="font-size: 0.82rem; font-weight: 600; color: var(--text-secondary); margin-bottom: 4px;">Username</div>')
+                    su_user = st.text_input("Username", value="risk_analyst", label_visibility="collapsed")
+                with f_c2:
+                    render_html('<div style="font-size: 0.82rem; font-weight: 600; color: var(--text-secondary); margin-bottom: 4px;">Business Email</div>')
+                    su_email = st.text_input("Business Email", value="analyst@bank.internal", label_visibility="collapsed")
+                    
+                p_c1, p_c2 = st.columns(2)
+                with p_c1:
+                    render_html('<div style="font-size: 0.82rem; font-weight: 600; color: var(--text-secondary); margin-bottom: 4px;">Password</div>')
+                    su_pwd = st.text_input("Password", value="••••••••••••", type="password", label_visibility="collapsed")
+                with p_c2:
+                    render_html('<div style="font-size: 0.82rem; font-weight: 600; color: var(--text-secondary); margin-bottom: 4px;">Account Role</div>')
+                    su_role = st.selectbox("Role", ["Senior Risk Officer", "AML Investigator", "Compliance Auditor", "Executive MLRO"], label_visibility="collapsed")
+                    
                 st.write("")
-                submit_reg = st.form_submit_button("👤+ Create Account & Sign In", use_container_width=True)
-                if submit_reg:
+                submit_signup = st.form_submit_button("Register Compliance Account", use_container_width=True, type="primary")
+                if submit_signup:
                     st.session_state.authenticated = True
-                    st.session_state.user_name = reg_name
+                    st.session_state.user_name = su_fullname
+                    st.session_state.user_role = su_role
                     st.rerun()
-
-        # Security Badges
-        st.markdown("""
-        <div style="text-align: center; margin-top: 24px; position: relative; z-index: 10;">
-            <div>
-                <span class="sec-badge">🛡️ PBKDF2 Password Hashing</span>
-                <span class="sec-badge">🔒 HMAC-SHA256 Bearer Token</span>
+                    
+        # Bottom Security Certifications (Zero Emojis)
+        render_html("""
+        <div style="margin-top: 18px; text-align: center; border-top: 1px solid var(--border-color); padding-top: 14px;">
+            <div style="display: flex; justify-content: center; gap: 12px; flex-wrap: wrap;">
+                <span style="font-size: 0.72rem; font-weight: 600; color: var(--text-muted); background: var(--card-hover); padding: 4px 10px; border-radius: 6px; border: 1px solid var(--border-color);">256-BIT TLS ENCRYPTION</span>
+                <span style="font-size: 0.72rem; font-weight: 600; color: var(--text-muted); background: var(--card-hover); padding: 4px 10px; border-radius: 6px; border: 1px solid var(--border-color);">REGTECH AUDIT CERTIFIED</span>
+                <span style="font-size: 0.72rem; font-weight: 600; color: var(--text-muted); background: var(--card-hover); padding: 4px 10px; border-radius: 6px; border: 1px solid var(--border-color);">DETERMINISTIC AI ENGINE</span>
             </div>
-            <div style="margin-top: 4px;">
-                <span class="sec-badge">🌐 Zero Unauthorized Access</span>
+            <div style="font-size: 0.7rem; color: var(--text-muted); margin-top: 10px;">
+                Bank-Grade Compliance Gateway • Snowflake Cortex Engine Integrated
             </div>
         </div>
-        """, unsafe_allow_html=True)
+        """)
 
     st.stop()
 
 # ------------------------------------------------------------------------------
-# 7. AUTHENTICATED OPERATIONAL DASHBOARD (SCREENSHOT 3)
+# 7. AUTHENTICATED NAVIGATION & SIDEBAR (Zero Emojis)
 # ------------------------------------------------------------------------------
 
-# --- LEFT SIDEBAR (Matching Exact Screenshot 3) ---
 with st.sidebar:
-    # Astra AI Logo & Brand
-    logo_side_html = f'<img src="data:image/png;base64,{current_logo_b64}" width="38" height="38" style="object-fit: contain; vertical-align: middle; margin-right: 10px;" />' if current_logo_b64 else '⚡ '
-    st.markdown(f"""
-    <div style="display: flex; align-items: center; padding: 10px 0 16px 0; border-bottom: 1px solid var(--border-color); margin-bottom: 16px;">
+    # Brand Header
+    logo_side_html = f'<img src="data:image/png;base64,{current_logo_b64}" width="34" height="34" style="object-fit: contain; vertical-align: middle; margin-right: 10px;" />' if current_logo_b64 else ''
+    render_html(f"""
+    <div style="display: flex; align-items: center; padding: 6px 0 14px 0; border-bottom: 1px solid var(--border-color); margin-bottom: 14px;">
         {logo_side_html}
         <div>
             <div style="font-size: 1.15rem; font-weight: 800; color: var(--text-primary); letter-spacing: -0.02em;">Astra AI</div>
-            <div style="font-size: 0.65rem; font-weight: 700; color: var(--text-muted); letter-spacing: 0.06em; text-transform: uppercase;">Risk & Regulatory Intelligence</div>
+            <div style="font-size: 0.64rem; font-weight: 700; color: var(--text-muted); letter-spacing: 0.07em; text-transform: uppercase;">Risk & Regulatory Intelligence</div>
         </div>
     </div>
-    """, unsafe_allow_html=True)
+    """)
     
-    st.markdown('<div style="font-size: 0.72rem; font-weight: 700; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.08em; margin: 12px 0 6px 0;">OPERATIONS</div>', unsafe_allow_html=True)
+    render_html('<div style="font-size: 0.72rem; font-weight: 700; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.08em; margin: 10px 0 6px 0;">OPERATIONS</div>')
     
-    nav_items = ["Dashboard", "Transactions", "Customers", "Alerts (8)", "Investigations (2)"]
-    for item in nav_items:
-        clean_name = item.split(" ")[0]
-        is_active = st.session_state.active_nav == clean_name
-        if st.button(f"{'📊 ' if 'Dash' in item else '⚡ ' if 'Trans' in item else '👥 ' if 'Cust' in item else '🔔 ' if 'Alert' in item else '📋 '}{item}", key=f"nav_{clean_name}", use_container_width=True, type="primary" if is_active else "secondary"):
-            st.session_state.active_nav = clean_name
+    nav_ops = [
+        ("Dashboard", "Dashboard"),
+        ("Transactions", "Transactions"),
+        ("Customers", "Customers"),
+        ("Alerts", "Alerts (8)"),
+        ("Investigations", "Investigations (2)")
+    ]
+    for key, label in nav_ops:
+        is_active = st.session_state.active_nav == key
+        if st.button(label, key=f"nav_{key}", use_container_width=True, type="primary" if is_active else "secondary"):
+            st.session_state.active_nav = key
             st.rerun()
 
-    st.markdown('<div style="font-size: 0.72rem; font-weight: 700; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.08em; margin: 18px 0 6px 0;">AI & INTELLIGENCE</div>', unsafe_allow_html=True)
+    render_html('<div style="font-size: 0.72rem; font-weight: 700; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.08em; margin: 16px 0 6px 0;">AI & INTELLIGENCE</div>')
     
-    if st.button("📖 Regulatory Rules", key="nav_rules", use_container_width=True, type="primary" if st.session_state.active_nav == "Regulatory" else "secondary"):
+    if st.button("Regulatory Rules", key="nav_rules", use_container_width=True, type="primary" if st.session_state.active_nav == "Regulatory" else "secondary"):
         st.session_state.active_nav = "Regulatory"
         st.rerun()
         
-    if st.button("🧠 Copilot Assistant  [AI]", key="nav_copilot", use_container_width=True, type="primary" if st.session_state.active_nav == "Copilot" else "secondary"):
+    if st.button("Copilot Assistant", key="nav_copilot", use_container_width=True, type="primary" if st.session_state.active_nav == "Copilot" else "secondary"):
         st.session_state.active_nav = "Copilot"
         st.rerun()
 
     st.write("")
     st.write("")
     
-    # User Profile Card at Sidebar Bottom
+    # User Profile Box
     user_name = getattr(st.session_state, "user_name", "Senior Risk Officer")
-    st.markdown(f"""
-    <div style="background: var(--card-bg); border: 1px solid var(--border-color); border-radius: 14px; padding: 12px; margin-top: 20px; display: flex; align-items: center; justify-content: space-between;">
-        <div style="display: flex; align-items: center; gap: 10px;">
-            <div style="width: 32px; height: 32px; border-radius: 50%; background: #2563eb; color: #fff; font-weight: 700; display: flex; align-items: center; justify-content: center; font-size: 0.85rem;">S</div>
-            <div>
-                <div style="font-size: 0.82rem; font-weight: 700; color: var(--text-primary);">{user_name}</div>
-                <span style="font-size: 0.65rem; font-weight: 800; background: rgba(37, 99, 235, 0.15); color: #2563eb; padding: 1px 6px; border-radius: 4px;">USER</span>
-            </div>
+    user_role = getattr(st.session_state, "user_role", "Senior Risk Officer")
+    render_html(f"""
+    <div style="background: var(--card-bg); border: 1px solid var(--border-color); border-radius: 12px; padding: 12px; margin-top: 16px;">
+        <div style="font-size: 0.84rem; font-weight: 700; color: var(--text-primary);">{user_name}</div>
+        <div style="font-size: 0.72rem; color: var(--text-muted); margin-top: 2px;">{user_role}</div>
+        <div style="margin-top: 6px;">
+            <span style="font-size: 0.65rem; font-weight: 800; background: rgba(37, 99, 235, 0.12); color: #2563eb; padding: 2px 7px; border-radius: 4px; letter-spacing: 0.04em;">ANALYST VERIFIED</span>
         </div>
     </div>
-    """, unsafe_allow_html=True)
+    """)
     
-    if st.button("🚪 Sign Out", key="sidebar_logout_btn", use_container_width=True):
+    if st.button("Sign Out", key="sidebar_logout_btn", use_container_width=True):
         st.session_state.authenticated = False
         st.rerun()
 
-# --- TOP BREADCRUMB & ENGINE STATUS ---
+# --- TOP BREADCRUMB & STATUS ---
 bc_col1, bc_col2 = st.columns([8, 2])
 with bc_col1:
-    st.markdown(f"""
-    <div style="display: flex; align-items: center; gap: 8px; font-size: 0.85rem; color: var(--text-secondary); margin-bottom: 12px;">
-        <span>Astra AI</span> / <strong style="color: var(--text-primary);">{st.session_state.active_nav}</strong>
+    render_html(f"""
+    <div style="font-size: 0.88rem; color: var(--text-secondary); margin-bottom: 12px; font-weight: 500;">
+        <span>Astra AI</span> <span style="opacity: 0.4;">/</span> <strong style="color: var(--text-primary);">{st.session_state.active_nav}</strong>
     </div>
-    """, unsafe_allow_html=True)
+    """)
 with bc_col2:
-    st.markdown("""
-    <div style="text-align: right; display: flex; align-items: center; justify-content: flex-end; gap: 6px; font-size: 0.8rem; font-weight: 600; color: #10b981;">
-        <span style="display: inline-block; width: 8px; height: 8px; border-radius: 50%; background: #10b981; box-shadow: 0 0 8px #10b981;"></span>
+    render_html("""
+    <div style="text-align: right; display: flex; align-items: center; justify-content: flex-end; gap: 8px; font-size: 0.78rem; font-weight: 700; color: #10b981;">
+        <span style="display: inline-block; width: 8px; height: 8px; border-radius: 50%; background: #10b981; box-shadow: 0 0 6px #10b981;"></span>
         <span>Live Engine Connected</span>
     </div>
-    """, unsafe_allow_html=True)
+    """)
 
 # ------------------------------------------------------------------------------
 # 8. VIEW: OPERATIONAL DASHBOARD
 # ------------------------------------------------------------------------------
 if st.session_state.active_nav == "Dashboard":
     # 1. TOP ACTIVE ALERT BANNER
-    alert_c1, alert_c2 = st.columns([4, 1.2])
+    alert_c1, alert_c2 = st.columns([4, 1.3])
     with alert_c1:
         render_html("""
-        <div style="background: linear-gradient(90deg, rgba(29, 78, 216, 0.12), rgba(6, 182, 212, 0.06)); border: 1px solid rgba(59, 130, 246, 0.35); border-radius: 16px; padding: 16px 20px;">
-            <div class="alert-tag-red">ACTIVE ALERT</div>
+        <div style="background: linear-gradient(90deg, rgba(29, 78, 216, 0.08), rgba(6, 182, 212, 0.04)); border: 1px solid rgba(59, 130, 246, 0.35); border-radius: 14px; padding: 16px 20px;">
+            <div style="display: inline-block; font-size: 0.72rem; font-weight: 800; letter-spacing: 0.06em; background: rgba(239, 68, 68, 0.15); color: #ef4444; border: 1px solid rgba(239, 68, 68, 0.3); padding: 2px 7px; border-radius: 5px; margin-bottom: 4px;">ACTIVE ALERT</div>
             <div style="font-size: 0.88rem; color: var(--text-primary); margin-top: 4px;">
                 Customer <strong>Vikramaditya Singhania (CUST-1008)</strong> triggered Statutory AML Rule 01 (Large Value CDD) and Rule 03 (High-Risk Jurisdiction).
             </div>
@@ -525,7 +501,7 @@ if st.session_state.active_nav == "Dashboard":
         st.write("")
         b_c1, b_c2 = st.columns(2)
         with b_c1:
-            if st.button("Review TXN-1024 ➔", use_container_width=True, type="primary"):
+            if st.button("Review TXN-1024 ->", use_container_width=True, type="primary"):
                 st.session_state.active_nav = "Transactions"
                 st.rerun()
         with b_c2:
@@ -536,14 +512,14 @@ if st.session_state.active_nav == "Dashboard":
 
     st.write("")
 
-    # 2. 4 KPI STATS CARDS (Exact numbers from Screenshot 3)
+    # 2. 4 KPI STATS CARDS (Exact values, Zero Emojis)
     k1, k2, k3, k4 = st.columns(4)
     with k1:
         render_html("""
         <div class="kpi-stat-card">
             <div class="kpi-stat-header">
                 <span class="kpi-stat-label">TOTAL TRANSACTIONS</span>
-                <span style="background: rgba(59, 130, 246, 0.15); color: #3b82f6; padding: 4px 8px; border-radius: 8px;">📈</span>
+                <span style="font-size: 0.72rem; font-weight: 700; color: #3b82f6; background: rgba(59, 130, 246, 0.12); padding: 3px 8px; border-radius: 6px;">TOTAL</span>
             </div>
             <div class="kpi-stat-val">121</div>
             <div class="kpi-stat-sub">Monitored Volume: ₹1,26,13,759.65</div>
@@ -555,7 +531,7 @@ if st.session_state.active_nav == "Dashboard":
         <div class="kpi-stat-card">
             <div class="kpi-stat-header">
                 <span class="kpi-stat-label">SUSPICIOUS TRANSACTIONS</span>
-                <span style="background: rgba(239, 68, 68, 0.15); color: #ef4444; padding: 4px 8px; border-radius: 8px;">⚠️</span>
+                <span style="font-size: 0.72rem; font-weight: 700; color: #ef4444; background: rgba(239, 68, 68, 0.12); padding: 3px 8px; border-radius: 6px;">FLAGGED</span>
             </div>
             <div class="kpi-stat-val" style="color: #ef4444;">14 <span style="font-size: 1.1rem; font-weight: 500; color: var(--text-secondary);">(11.6%)</span></div>
             <div class="kpi-stat-sub">Triggered explainable rule thresholds</div>
@@ -567,7 +543,7 @@ if st.session_state.active_nav == "Dashboard":
         <div class="kpi-stat-card">
             <div class="kpi-stat-header">
                 <span class="kpi-stat-label">HIGH-RISK CUSTOMERS</span>
-                <span style="background: rgba(249, 115, 22, 0.15); color: #f97316; padding: 4px 8px; border-radius: 8px;">👥</span>
+                <span style="font-size: 0.72rem; font-weight: 700; color: #f97316; background: rgba(249, 115, 22, 0.12); padding: 3px 8px; border-radius: 6px;">EDD</span>
             </div>
             <div class="kpi-stat-val" style="color: #f97316;">3</div>
             <div class="kpi-stat-sub">Subject to Enhanced Due Diligence (EDD)</div>
@@ -579,7 +555,7 @@ if st.session_state.active_nav == "Dashboard":
         <div class="kpi-stat-card">
             <div class="kpi-stat-header">
                 <span class="kpi-stat-label">OPEN INVESTIGATIONS</span>
-                <span style="background: rgba(16, 185, 129, 0.15); color: #10b981; padding: 4px 8px; border-radius: 8px;">📋</span>
+                <span style="font-size: 0.72rem; font-weight: 700; color: #10b981; background: rgba(16, 185, 129, 0.12); padding: 3px 8px; border-radius: 6px;">ACTIVE</span>
             </div>
             <div class="kpi-stat-val">2</div>
             <div class="kpi-stat-sub">Active cases under compliance review</div>
@@ -595,7 +571,7 @@ if st.session_state.active_nav == "Dashboard":
         <div class="kpi-stat-card">
             <div class="kpi-stat-header">
                 <strong style="color: var(--text-primary); font-size: 1rem;">Risk Score Distribution</strong>
-                <span style="color: #06b6d4;">🛡️</span>
+                <span style="font-size: 0.72rem; font-weight: 700; color: #0284c7; background: rgba(2, 132, 199, 0.12); padding: 2px 7px; border-radius: 5px;">RISK TIERS</span>
             </div>
             <div style="margin-top: 14px;">
                 <div style="display: flex; justify-content: space-between; font-size: 0.82rem; margin-bottom: 4px;">
@@ -657,7 +633,7 @@ if st.session_state.active_nav == "Dashboard":
         <div class="kpi-stat-card">
             <div class="kpi-stat-header">
                 <strong style="color: var(--text-primary); font-size: 1rem;">Suspicious Volume & Alerts Timeline (14 Days)</strong>
-                <span style="color: #3b82f6;">📈</span>
+                <span style="font-size: 0.72rem; font-weight: 700; color: #3b82f6; background: rgba(59, 130, 246, 0.12); padding: 2px 7px; border-radius: 5px;">14-DAY</span>
             </div>
             <div style="height: 195px; display: flex; align-items: flex-end; gap: 6px; padding-top: 18px;">
                 {bars_html}
@@ -671,7 +647,7 @@ if st.session_state.active_nav == "Dashboard":
 
     st.write("")
 
-    # 4. BOTTOM SECTION: PRIORITY RISK ALERTS & MONITORED CORRIDORS (Exact Screenshot 3)
+    # 4. BOTTOM SECTION: PRIORITY RISK ALERTS & MONITORED CORRIDORS
     b_col1, b_col2 = st.columns([1.6, 1])
     
     with b_col1:
@@ -690,56 +666,56 @@ if st.session_state.active_nav == "Dashboard":
                         <span class="badge-crit">CRITICAL</span>
                         <strong style="color: var(--text-primary);">Vikramaditya Singhania</strong> &bull; <span style="color: var(--text-secondary);">₹6,80,000 to Panama</span>
                     </div>
-                    <span style="color: #3b82f6; font-size: 0.82rem; font-weight: 600;">TXN-1025 ↗</span>
+                    <span style="color: #3b82f6; font-size: 0.82rem; font-weight: 600;">TXN-1025 -></span>
                 </div>
                 <div class="alert-row">
                     <div>
                         <span class="badge-crit">CRITICAL</span>
                         <strong style="color: var(--text-primary);">Vikramaditya Singhania</strong> &bull; <span style="color: var(--text-secondary);">₹12,50,000 to Cayman Islands</span>
                     </div>
-                    <span style="color: #3b82f6; font-size: 0.82rem; font-weight: 600;">TXN-1024 ↗</span>
+                    <span style="color: #3b82f6; font-size: 0.82rem; font-weight: 600;">TXN-1024 -></span>
                 </div>
                 <div class="alert-row">
                     <div>
                         <span class="badge-med">MEDIUM</span>
                         <strong style="color: var(--text-primary);">Devendra Patil</strong> &bull; <span style="color: var(--text-secondary);">₹49,800 to India</span>
                     </div>
-                    <span style="color: #3b82f6; font-size: 0.82rem; font-weight: 600;">TXN-1034 ↗</span>
+                    <span style="color: #3b82f6; font-size: 0.82rem; font-weight: 600;">TXN-1034 -></span>
                 </div>
                 <div class="alert-row">
                     <div>
                         <span class="badge-med">MEDIUM</span>
                         <strong style="color: var(--text-primary);">Devendra Patil</strong> &bull; <span style="color: var(--text-secondary);">₹48,900 to India</span>
                     </div>
-                    <span style="color: #3b82f6; font-size: 0.82rem; font-weight: 600;">TXN-1033 ↗</span>
+                    <span style="color: #3b82f6; font-size: 0.82rem; font-weight: 600;">TXN-1033 -></span>
                 </div>
                 <div class="alert-row">
                     <div>
                         <span class="badge-med">MEDIUM</span>
                         <strong style="color: var(--text-primary);">Devendra Patil</strong> &bull; <span style="color: var(--text-secondary);">₹49,200 to India</span>
                     </div>
-                    <span style="color: #3b82f6; font-size: 0.82rem; font-weight: 600;">TXN-1032 ↗</span>
+                    <span style="color: #3b82f6; font-size: 0.82rem; font-weight: 600;">TXN-1032 -></span>
                 </div>
                 <div class="alert-row">
                     <div>
                         <span class="badge-low">LOW</span>
                         <strong style="color: var(--text-primary);">Devendra Patil</strong> &bull; <span style="color: var(--text-secondary);">₹49,500 to India</span>
                     </div>
-                    <span style="color: #3b82f6; font-size: 0.82rem; font-weight: 600;">TXN-1031 ↗</span>
+                    <span style="color: #3b82f6; font-size: 0.82rem; font-weight: 600;">TXN-1031 -></span>
                 </div>
                 <div class="alert-row">
                     <div>
                         <span class="badge-crit">CRITICAL</span>
                         <strong style="color: var(--text-primary);">Hon. Rameshwar Prasad</strong> &bull; <span style="color: var(--text-secondary);">₹8,50,000 to Switzerland</span>
                     </div>
-                    <span style="color: #3b82f6; font-size: 0.82rem; font-weight: 600;">TXN-1040 ↗</span>
+                    <span style="color: #3b82f6; font-size: 0.82rem; font-weight: 600;">TXN-1040 -></span>
                 </div>
                 <div class="alert-row">
                     <div>
                         <span class="badge-crit">CRITICAL</span>
                         <strong style="color: var(--text-primary);">Global Trade Nexus LLC</strong> &bull; <span style="color: var(--text-secondary);">₹18,50,000 to Vanuatu</span>
                     </div>
-                    <span style="color: #3b82f6; font-size: 0.82rem; font-weight: 600;">TXN-1051 ↗</span>
+                    <span style="color: #3b82f6; font-size: 0.82rem; font-weight: 600;">TXN-1051 -></span>
                 </div>
             </div>
         </div>
@@ -750,7 +726,7 @@ if st.session_state.active_nav == "Dashboard":
         <div class="kpi-stat-card">
             <div class="kpi-stat-header">
                 <strong style="color: var(--text-primary); font-size: 1rem;">Monitored Corridors</strong>
-                <span style="color: #06b6d4;">🌐</span>
+                <span style="font-size: 0.72rem; font-weight: 700; color: #0284c7; background: rgba(2, 132, 199, 0.12); padding: 2px 7px; border-radius: 5px;">FATF CORRIDORS</span>
             </div>
             
             <div style="margin-top: 8px;">
@@ -765,28 +741,28 @@ if st.session_state.active_nav == "Dashboard":
                     <span style="color: var(--text-secondary); font-size: 0.85rem;">1 transactions total</span>
                     <div style="text-align: right;">
                         <span style="color: #ef4444; font-weight: 700; font-size: 0.85rem;">1 Flagged</span><br>
-                        <span style="color: var(--text-muted); font-size: 0.75rem;">₹12,50,000</span>
+                        <span style="color: var(--text-muted); font-size: 0.75rem;">₹12,50,000.00</span>
                     </div>
                 </div>
                 <div class="alert-row">
                     <span style="color: var(--text-secondary); font-size: 0.85rem;">1 transactions total</span>
                     <div style="text-align: right;">
                         <span style="color: #ef4444; font-weight: 700; font-size: 0.85rem;">1 Flagged</span><br>
-                        <span style="color: var(--text-muted); font-size: 0.75rem;">₹6,80,000</span>
+                        <span style="color: var(--text-muted); font-size: 0.75rem;">₹6,80,000.00</span>
                     </div>
                 </div>
                 <div class="alert-row">
                     <span style="color: var(--text-secondary); font-size: 0.85rem;">1 transactions total</span>
                     <div style="text-align: right;">
                         <span style="color: #ef4444; font-weight: 700; font-size: 0.85rem;">1 Flagged</span><br>
-                        <span style="color: var(--text-muted); font-size: 0.75rem;">₹8,50,000</span>
+                        <span style="color: var(--text-muted); font-size: 0.75rem;">₹8,50,000.00</span>
                     </div>
                 </div>
                 <div class="alert-row">
                     <span style="color: var(--text-secondary); font-size: 0.85rem;">1 transactions total</span>
                     <div style="text-align: right;">
                         <span style="color: #ef4444; font-weight: 700; font-size: 0.85rem;">1 Flagged</span><br>
-                        <span style="color: var(--text-muted); font-size: 0.75rem;">₹18,50,000</span>
+                        <span style="color: var(--text-muted); font-size: 0.75rem;">₹18,50,000.00</span>
                     </div>
                 </div>
             </div>
@@ -794,63 +770,154 @@ if st.session_state.active_nav == "Dashboard":
         """)
 
 # ------------------------------------------------------------------------------
-# 9. VIEW: NEURAL COPILOT ASSISTANT
+# 9. VIEW: REWORKED NEURAL COPILOT ASSISTANT (Matching React Copilot.jsx, Zero Emojis)
 # ------------------------------------------------------------------------------
 elif st.session_state.active_nav == "Copilot":
-    st.subheader("🧠 Astra AI Neural Copilot Assistant")
-    st.caption("Real-Time Financial Crime, AML & Regulatory Guidance")
+    render_html("""
+    <div style="margin-bottom: 20px;">
+        <h2 style="font-size: 1.5rem; font-weight: 800; color: var(--text-primary); margin: 0 0 4px 0;">Astra AI Copilot Assistant</h2>
+        <div style="font-size: 0.85rem; color: var(--text-secondary);">
+            Explainable conversational intelligence grounded in transaction graphs, baseline statistics, and the Regulatory Knowledge Base.
+        </div>
+    </div>
+    """)
 
-    if "copilot_history" not in st.session_state:
-        st.session_state.copilot_history = [
-            {"role": "assistant", "content": "👋 Greetings, Senior Risk Officer. I am Astra AI. I have analyzed your transaction stream, 14 flagged alerts, and high-risk customer profiles. How can I assist you with regulatory investigation or SAR narrative drafting?"}
+    c_left, c_right = st.columns([1, 2.2])
+
+    with c_left:
+        render_html("""
+        <div class="kpi-stat-card" style="margin-bottom: 16px;">
+            <div style="font-size: 0.82rem; font-weight: 800; text-transform: uppercase; letter-spacing: 0.06em; color: var(--text-primary); margin-bottom: 4px;">
+                Recommended Inquiries
+            </div>
+            <div style="font-size: 0.78rem; color: var(--text-muted); margin-bottom: 12px;">
+                Select any standard inquiry to run the deterministic audit & explanation pipeline:
+            </div>
+        </div>
+        """)
+
+        sample_prompts = [
+            "Why was transaction TXN-1024 flagged?",
+            "Why is customer CUST-1008 considered high risk?",
+            "Show high-risk transactions above 5 Lakh",
+            "Show suspicious FATF offshore corridors",
+            "Show regulatory evidence and AML rules",
+            "Generate an investigation summary for CUST-1008"
         ]
 
-    for m in st.session_state.copilot_history:
-        with st.chat_message(m["role"]):
-            st.markdown(m["content"])
+        for s_idx, sp in enumerate(sample_prompts):
+            if st.button(sp, key=f"sp_btn_{s_idx}", use_container_width=True):
+                st.session_state.copilot_query = sp
+                st.rerun()
 
-    init_prompt = st.session_state.copilot_query or ""
-    prompt = st.chat_input("Ask Astra AI...", key="copilot_chat_input")
-    if init_prompt and not prompt:
-        prompt = init_prompt
-        st.session_state.copilot_query = ""
+        render_html("""
+        <div style="margin-top: 14px; padding: 12px; background: var(--card-bg); border: 1px solid var(--border-color); border-radius: 12px; font-size: 0.74rem; color: var(--text-muted); line-height: 1.5;">
+            <strong style="color: #0284c7;">Grounded Reasoning:</strong> Responses directly correlate transaction database records, baseline averages, and statutory knowledge clauses without hallucinating.
+        </div>
+        """)
 
-    if prompt:
-        st.session_state.copilot_history.append({"role": "user", "content": prompt})
-        with st.chat_message("user"):
-            st.markdown(prompt)
+    with c_right:
+        # Check if query was passed from button or initial banner
+        active_input = st.session_state.copilot_query
+        if active_input:
+            st.session_state.copilot_query = ""
+            st.session_state.copilot_history.append({"role": "user", "title": "COMPLIANCE OFFICER", "content": active_input})
+            
+            p_lower = active_input.lower()
+            if "1024" in p_lower or "singhania" in p_lower:
+                ans_body = """
+                <div style="font-weight: 700; font-size: 0.95rem; margin-bottom: 8px;">Flag Evaluation: Transaction TXN-1024</div>
+                <div style="margin-bottom: 8px;">
+                    <div>• <strong>Customer:</strong> Vikramaditya Singhania (CUST-1008)</div>
+                    <div>• <strong>Amount:</strong> ₹12,50,000.00 to <em>Cayman Islands</em></div>
+                    <div>• <strong>Baseline Deviation:</strong> +594% above 90-day moving average (₹1,80,000.00)</div>
+                </div>
+                <div style="margin-top: 10px; margin-bottom: 6px; font-weight: 700; font-size: 0.82rem; text-transform: uppercase; color: var(--text-secondary);">Triggered Statutory Rules:</div>
+                <div style="display: flex; flex-direction: column; gap: 6px; margin-bottom: 12px;">
+                    <div style="background: var(--card-hover); padding: 8px 12px; border-radius: 8px; border-left: 3px solid #ef4444;">
+                        <span class="badge-crit">AML-R01</span> <strong>Large Value Customer Due Diligence:</strong> Cross-border transfer exceeds statutory regulatory threshold of ₹10,00,000.
+                    </div>
+                    <div style="background: var(--card-hover); padding: 8px 12px; border-radius: 8px; border-left: 3px solid #ef4444;">
+                        <span class="badge-crit">AML-R03</span> <strong>High-Risk Offshore Secrecy Jurisdiction:</strong> Cayman Islands is designated under enhanced FATF monitoring for tax transparency and beneficial ownership opacity.
+                    </div>
+                </div>
+                <div style="font-weight: 700; font-size: 0.82rem; text-transform: uppercase; color: var(--text-secondary); margin-bottom: 4px;">Recommended Remediation:</div>
+                <div>1. Issue statutory Request for Information (RFI) regarding source of funds and ultimate beneficial ownership (UBO).</div>
+                <div>2. Escalate to Case <strong>CASE-4091</strong> for draft Suspicious Activity Report (SAR) filing with the Financial Intelligence Unit (FIU).</div>
+                """
+            elif "cust-1008" in p_lower or "high risk" in p_lower:
+                ans_body = """
+                <div style="font-weight: 700; font-size: 0.95rem; margin-bottom: 8px;">Customer Risk Profile: Vikramaditya Singhania (CUST-1008)</div>
+                <div style="margin-bottom: 8px;">
+                    <div>• <strong>Assigned Risk Tier:</strong> CRITICAL (Risk Score: 88/100)</div>
+                    <div>• <strong>KYC Status:</strong> Enhanced Due Diligence (EDD) Required</div>
+                    <div>• <strong>Politically Exposed Person (PEP):</strong> Yes (Close Associate of Senior Public Official)</div>
+                    <div>• <strong>Total Monitored Outflows:</strong> ₹19,30,000.00 across 2 high-risk offshore corridors (Panama & Cayman Islands)</div>
+                </div>
+                <div style="margin-top: 8px; padding: 10px; background: rgba(239, 68, 68, 0.08); border-radius: 8px; border: 1px solid rgba(239, 68, 68, 0.2);">
+                    <strong>Risk Rationale:</strong> Customer exhibits classic structuring and rapid outbound transfer behavior. Domestic funds received were aggregated and wired to offshore jurisdictions within 48 hours.
+                </div>
+                """
+            elif "sar" in p_lower or "summary" in p_lower:
+                ans_body = """
+                <div style="font-weight: 700; font-size: 0.95rem; margin-bottom: 8px;">Draft Suspicious Activity Report (SAR) Narrative</div>
+                <div style="font-size: 0.78rem; color: var(--text-muted); margin-bottom: 10px;">Subject: Vikramaditya Singhania (CUST-1008) | Target: Financial Intelligence Unit</div>
+                <div style="background: var(--card-hover); padding: 12px; border-radius: 8px; font-size: 0.82rem; line-height: 1.6; border: 1px solid var(--border-color);">
+                    Between Oct 01 and Oct 05, the subject conducted high-velocity international wires totaling ₹19,30,000.00 to offshore jurisdictions (Panama and Cayman Islands) with no verifiable commercial underlying documentation. Historical account turnover averaged ₹1,80,000.00 monthly. Inbound funds were immediately wired out within 48 hours, demonstrating indicators of Layering under FATF Recommendation 16.
+                </div>
+                """
+            else:
+                ans_body = f"""
+                <div style="font-weight: 700; font-size: 0.95rem; margin-bottom: 8px;">Astra AI Regulatory Reasoning</div>
+                <div>Grounded evaluation completed for inquiry: <em>"{active_input}"</em></div>
+                <div style="margin-top: 8px;">• Correlated 121 monitored transactions and 14 flagged AML alerts across all compliance ledgers.</div>
+                <div>• Identified 4 Critical risk items requiring MLRO compliance signoff.</div>
+                <div>• Verified against Statutory AML Rules AML-R01 through AML-R05 with full audit traceability preserved.</div>
+                """
+            
+            st.session_state.copilot_history.append({"role": "assistant", "title": "INVESTIGATION COPILOT", "content": ans_body})
 
-        with st.chat_message("assistant"):
-            with st.spinner("Astra Neural Copilot is reasoning..."):
-                p_lower = prompt.lower()
-                if "1024" in p_lower or "singhania" in p_lower:
-                    ans = """### 🛡️ Flag Evaluation: Transaction TXN-1024
-- **Customer**: Vikramaditya Singhania (CUST-1008)
-- **Amount**: ₹12,50,000.00 to *Cayman Islands*
-- **Triggered Rules**:
-  1. `AML-R01`: Large Value Customer Due Diligence (Threshold > ₹10,00,000)
-  2. `AML-R03`: High-Risk Offshore Secrecy Jurisdiction (FATF Grey/Monitoring List)
-- **Recommended Remediation**:
-  - Issue urgent Request for Information (RFI) for beneficial ownership.
-  - Escalate to Case `CASE-4091` for FIU Suspicious Activity Report (SAR) filing."""
-                elif "sar" in p_lower or "draft" in p_lower:
-                    ans = """### 📋 Draft SAR Filing Narrative
-**Subject**: Vikramaditya Singhania (CUST-1008)  
-**Reporting Jurisdiction**: Financial Intelligence Unit (FIU)  
+        # Render conversation stream
+        for msg in st.session_state.copilot_history:
+            if msg["role"] == "user":
+                render_html(f"""
+                <div class="chat-bubble-user">
+                    <span class="chat-badge-user">COMPLIANCE OFFICER</span>
+                    <div style="font-size: 0.9rem; color: var(--text-primary); font-weight: 600;">{msg['content']}</div>
+                </div>
+                """)
+            else:
+                render_html(f"""
+                <div class="chat-bubble-copilot">
+                    <span class="chat-badge-copilot">INVESTIGATION COPILOT</span>
+                    <div style="font-size: 0.88rem; color: var(--text-primary); line-height: 1.6;">
+                        {msg['content']}
+                    </div>
+                </div>
+                """)
 
-**Summary of Suspicious Activity**:
-Between Oct 01 and Oct 05, subject engaged in multiple high-velocity outbound transfers totaling ₹19,30,000.00 to offshore jurisdictions (Panama & Cayman Islands) with no verifiable commercial rationale. Prior monthly average was ₹1,80,000.00. Funds were aggregated from rapid inbound domestic wires and immediately wired out, presenting classic indicators of Layering and Trade-Based Money Laundering."""
-                else:
-                    ans = f"### 🧠 Astra AI Regulatory Reasoning\nI have evaluated: **\"{prompt}\"** against your compliance database (121 total transactions, 14 flagged).\n\n- **Risk Status**: 4 Critical risk items requiring MLRO signoff.\n- **Action**: All audit evidence has been preserved in compliance logs."
-
-                st.markdown(ans)
-                st.session_state.copilot_history.append({"role": "assistant", "content": ans})
+        # Clean Chat Input Box
+        with st.form("copilot_chat_form", clear_on_submit=True):
+            user_typed = st.text_input("Message Copilot", placeholder="Ask Astra AI regulatory audit question or enter transaction ID...", label_visibility="collapsed")
+            send_c1, send_c2 = st.columns([5, 1])
+            with send_c2:
+                send_clicked = st.form_submit_button("Send Query", use_container_width=True, type="primary")
+            if send_clicked and user_typed:
+                st.session_state.copilot_query = user_typed
+                st.rerun()
 
 # ------------------------------------------------------------------------------
-# 10. VIEW: TRANSACTIONS & CUSTOMERS
+# 10. VIEW: TRANSACTIONS & ALERTS (Zero Emojis)
 # ------------------------------------------------------------------------------
 elif st.session_state.active_nav in ["Transactions", "Alerts"]:
-    st.subheader("⚡ Live Transaction Surveillance Ledger")
+    render_html("""
+    <div style="margin-bottom: 16px;">
+        <h2 style="font-size: 1.5rem; font-weight: 800; color: var(--text-primary); margin: 0 0 4px 0;">Live Transaction Surveillance Ledger</h2>
+        <div style="font-size: 0.85rem; color: var(--text-secondary);">
+            Deterministic anomaly scoring, corridor routing, and statutory flag detection across all enterprise payments.
+        </div>
+    </div>
+    """)
     tx_df = pd.DataFrame([
         {"Tx ID": "TXN-1024", "Customer": "Vikramaditya Singhania", "Amount": "₹12,50,000.00", "Destination": "Cayman Islands", "Risk": "CRITICAL", "Anomaly Score": 0.94, "Status": "FLAGGED"},
         {"Tx ID": "TXN-1025", "Customer": "Vikramaditya Singhania", "Amount": "₹6,80,000.00", "Destination": "Panama", "Risk": "CRITICAL", "Anomaly Score": 0.92, "Status": "FLAGGED"},
@@ -862,8 +929,18 @@ elif st.session_state.active_nav in ["Transactions", "Alerts"]:
     ])
     st.dataframe(tx_df, use_container_width=True)
 
+# ------------------------------------------------------------------------------
+# 11. VIEW: CUSTOMERS (Zero Emojis)
+# ------------------------------------------------------------------------------
 elif st.session_state.active_nav == "Customers":
-    st.subheader("👥 Customer AML & KYC Profiles")
+    render_html("""
+    <div style="margin-bottom: 16px;">
+        <h2 style="font-size: 1.5rem; font-weight: 800; color: var(--text-primary); margin: 0 0 4px 0;">Customer AML & KYC Profiles</h2>
+        <div style="font-size: 0.85rem; color: var(--text-secondary);">
+            Baseline transaction velocity, PEP classification, and risk tier evaluation.
+        </div>
+    </div>
+    """)
     cust_df = pd.DataFrame([
         {"Customer ID": "CUST-1008", "Full Name": "Vikramaditya Singhania", "KYC Status": "Enhanced Due Diligence", "Risk Score": 88, "Risk Level": "HIGH", "PEP": "Yes"},
         {"Customer ID": "CUST-1004", "Full Name": "Hon. Rameshwar Prasad", "KYC Status": "Enhanced Due Diligence", "Risk Score": 82, "Risk Level": "HIGH", "PEP": "Yes"},
@@ -873,6 +950,74 @@ elif st.session_state.active_nav == "Customers":
     ])
     st.dataframe(cust_df, use_container_width=True)
 
+# ------------------------------------------------------------------------------
+# 12. VIEW: REGULATORY RULES & INVESTIGATIONS (Zero Emojis)
+# ------------------------------------------------------------------------------
+elif st.session_state.active_nav == "Regulatory":
+    render_html("""
+    <div style="margin-bottom: 16px;">
+        <h2 style="font-size: 1.5rem; font-weight: 800; color: var(--text-primary); margin: 0 0 4px 0;">Statutory AML & Regulatory Knowledge Base</h2>
+        <div style="font-size: 0.85rem; color: var(--text-secondary);">
+            FATF Recommendations, PMLA Statutory Rules, and FIU Typologies enforced deterministically by the Astra engine.
+        </div>
+    </div>
+    <div style="display: flex; flex-direction: column; gap: 12px;">
+        <div class="kpi-stat-card">
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 6px;">
+                <span class="badge-crit">AML-R01</span> <strong>Large Value Customer Due Diligence (Threshold > ₹10,00,000)</strong>
+                <span style="font-size: 0.72rem; color: var(--text-muted);">PMLA 2002 Sec 12</span>
+            </div>
+            <div style="font-size: 0.82rem; color: var(--text-secondary);">Mandates mandatory Customer Due Diligence (CDD) and verified source-of-wealth identification for single cross-border payments exceeding ₹10,00,000.</div>
+        </div>
+        <div class="kpi-stat-card">
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 6px;">
+                <span class="badge-crit">AML-R03</span> <strong>High-Risk Offshore Secrecy Jurisdiction Corridors</strong>
+                <span style="font-size: 0.72rem; color: var(--text-muted);">FATF Recommendation 19</span>
+            </div>
+            <div style="font-size: 0.82rem; color: var(--text-secondary);">Automatically triggers Enhanced Due Diligence (EDD) for transactions involving FATF grey-list countries or jurisdictions with non-transparent beneficial ownership registries.</div>
+        </div>
+        <div class="kpi-stat-card">
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 6px;">
+                <span class="badge-med">AML-R04</span> <strong>Structuring & Smurfing Detection (Sub-threshold Velocity)</strong>
+                <span style="font-size: 0.72rem; color: var(--text-muted);">FIU Typology T-08</span>
+            </div>
+            <div style="font-size: 0.82rem; color: var(--text-secondary);">Flags multiple transactions just below statutory reporting thresholds (e.g. ₹49,000 to ₹49,900) occurring within a compressed 72-hour window.</div>
+        </div>
+    </div>
+    """)
+
+elif st.session_state.active_nav == "Investigations":
+    render_html("""
+    <div style="margin-bottom: 16px;">
+        <h2 style="font-size: 1.5rem; font-weight: 800; color: var(--text-primary); margin: 0 0 4px 0;">Active Compliance Cases & SAR Filing Queue</h2>
+        <div style="font-size: 0.85rem; color: var(--text-secondary);">
+            Cases currently under Enhanced Due Diligence (EDD) and FIU submission review.
+        </div>
+    </div>
+    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 14px;">
+        <div class="kpi-stat-card">
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 6px;">
+                <strong style="color: var(--text-primary);">CASE-4091: Vikramaditya Singhania</strong>
+                <span class="badge-crit">UNDER REVIEW</span>
+            </div>
+            <div style="font-size: 0.82rem; color: var(--text-secondary); margin-bottom: 8px;">Triggered Rules: AML-R01 (Large Value), AML-R03 (Cayman Islands)</div>
+            <div style="font-size: 0.78rem; color: var(--text-muted);">Flagged Amount: ₹12,50,000.00 • Priority: High • Assigned: Senior Risk Officer</div>
+        </div>
+        <div class="kpi-stat-card">
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 6px;">
+                <strong style="color: var(--text-primary);">CASE-4092: Devendra Patil</strong>
+                <span class="badge-med">EDD IN PROGRESS</span>
+            </div>
+            <div style="font-size: 0.82rem; color: var(--text-secondary); margin-bottom: 8px;">Triggered Rules: AML-R04 (Smurfing Velocity)</div>
+            <div style="font-size: 0.78rem; color: var(--text-muted);">Flagged Amount: ₹1,47,900.00 across 3 bursts • Priority: Medium</div>
+        </div>
+    </div>
+    """)
+
 else:
-    st.subheader(f"📋 {st.session_state.active_nav}")
-    st.info("Statutory investigation queue active. 2 cases pending final FIU signoff.")
+    render_html(f"""
+    <div class="kpi-stat-card">
+        <h3>{st.session_state.active_nav}</h3>
+        <p style="color: var(--text-secondary);">Statutory compliance ledger active. All operations logged under regulatory standards.</p>
+    </div>
+    """)
