@@ -8,6 +8,10 @@ import pandas as pd
 import numpy as np
 import base64
 import os
+def render_html(html_str):
+    # Strip leading whitespace on every line to prevent CommonMark from parsing HTML as indented code blocks (<pre><code>)
+    clean = "\n".join([line.lstrip() for line in html_str.splitlines() if line.strip()])
+    st.markdown(clean, unsafe_allow_html=True)
 
 # ------------------------------------------------------------------------------
 # 1. Page Configuration
@@ -509,14 +513,14 @@ if st.session_state.active_nav == "Dashboard":
     # 1. TOP ACTIVE ALERT BANNER
     alert_c1, alert_c2 = st.columns([4, 1.2])
     with alert_c1:
-        st.markdown("""
+        render_html("""
         <div style="background: linear-gradient(90deg, rgba(29, 78, 216, 0.12), rgba(6, 182, 212, 0.06)); border: 1px solid rgba(59, 130, 246, 0.35); border-radius: 16px; padding: 16px 20px;">
             <div class="alert-tag-red">ACTIVE ALERT</div>
             <div style="font-size: 0.88rem; color: var(--text-primary); margin-top: 4px;">
                 Customer <strong>Vikramaditya Singhania (CUST-1008)</strong> triggered Statutory AML Rule 01 (Large Value CDD) and Rule 03 (High-Risk Jurisdiction).
             </div>
         </div>
-        """, unsafe_allow_html=True)
+        """)
     with alert_c2:
         st.write("")
         b_c1, b_c2 = st.columns(2)
@@ -535,7 +539,7 @@ if st.session_state.active_nav == "Dashboard":
     # 2. 4 KPI STATS CARDS (Exact numbers from Screenshot 3)
     k1, k2, k3, k4 = st.columns(4)
     with k1:
-        st.markdown("""
+        render_html("""
         <div class="kpi-stat-card">
             <div class="kpi-stat-header">
                 <span class="kpi-stat-label">TOTAL TRANSACTIONS</span>
@@ -544,10 +548,10 @@ if st.session_state.active_nav == "Dashboard":
             <div class="kpi-stat-val">121</div>
             <div class="kpi-stat-sub">Monitored Volume: ₹1,26,13,759.65</div>
         </div>
-        """, unsafe_allow_html=True)
+        """)
         
     with k2:
-        st.markdown("""
+        render_html("""
         <div class="kpi-stat-card">
             <div class="kpi-stat-header">
                 <span class="kpi-stat-label">SUSPICIOUS TRANSACTIONS</span>
@@ -556,10 +560,10 @@ if st.session_state.active_nav == "Dashboard":
             <div class="kpi-stat-val" style="color: #ef4444;">14 <span style="font-size: 1.1rem; font-weight: 500; color: var(--text-secondary);">(11.6%)</span></div>
             <div class="kpi-stat-sub">Triggered explainable rule thresholds</div>
         </div>
-        """, unsafe_allow_html=True)
+        """)
 
     with k3:
-        st.markdown("""
+        render_html("""
         <div class="kpi-stat-card">
             <div class="kpi-stat-header">
                 <span class="kpi-stat-label">HIGH-RISK CUSTOMERS</span>
@@ -568,10 +572,10 @@ if st.session_state.active_nav == "Dashboard":
             <div class="kpi-stat-val" style="color: #f97316;">3</div>
             <div class="kpi-stat-sub">Subject to Enhanced Due Diligence (EDD)</div>
         </div>
-        """, unsafe_allow_html=True)
+        """)
 
     with k4:
-        st.markdown("""
+        render_html("""
         <div class="kpi-stat-card">
             <div class="kpi-stat-header">
                 <span class="kpi-stat-label">OPEN INVESTIGATIONS</span>
@@ -580,20 +584,19 @@ if st.session_state.active_nav == "Dashboard":
             <div class="kpi-stat-val">2</div>
             <div class="kpi-stat-sub">Active cases under compliance review</div>
         </div>
-        """, unsafe_allow_html=True)
+        """)
 
     st.write("")
 
     # 3. MIDDLE SECTION: RISK DISTRIBUTION & 14-DAY TIMELINE
     m_col1, m_col2 = st.columns([1, 1.5])
     with m_col1:
-        st.markdown("""
+        render_html("""
         <div class="kpi-stat-card">
             <div class="kpi-stat-header">
                 <strong style="color: var(--text-primary); font-size: 1rem;">Risk Score Distribution</strong>
                 <span style="color: #06b6d4;">🛡️</span>
             </div>
-            
             <div style="margin-top: 14px;">
                 <div style="display: flex; justify-content: space-between; font-size: 0.82rem; margin-bottom: 4px;">
                     <span style="color: #ef4444; font-weight: 600;">Critical Risk (85-100)</span>
@@ -632,20 +635,9 @@ if st.session_state.active_nav == "Dashboard":
                 Evaluated by the <strong>Deterministic Risk Engine</strong> using baseline deviation, FATF corridor checks, and burst frequency.
             </div>
         </div>
-        """, unsafe_allow_html=True)
+        """)
 
     with m_col2:
-        st.markdown("""
-        <div class="kpi-stat-card">
-            <div class="kpi-stat-header">
-                <strong style="color: var(--text-primary); font-size: 1rem;">Suspicious Volume & Alerts Timeline (14 Days)</strong>
-                <span style="color: #3b82f6;">📈</span>
-            </div>
-            
-            <div style="height: 195px; display: flex; align-items: flex-end; gap: 8px; padding-top: 18px;">
-        """, unsafe_allow_html=True)
-        
-        # 14 Days synthetic chart matching Screenshot 3
         chart_data = [
             ("Sep 23", 10, 0), ("Sep 24", 15, 0), ("Sep 25", 35, 0), ("Sep 26", 20, 1),
             ("Sep 27", 18, 1), ("Sep 28", 40, 0), ("Sep 29", 12, 0), ("Sep 30", 55, 0),
@@ -653,27 +645,29 @@ if st.session_state.active_nav == "Dashboard":
             ("Oct 05", 25, 6), ("Oct 06", 50, 0)
         ]
         
-        cols = st.columns(len(chart_data))
-        for idx, (day, val, flg) in enumerate(chart_data):
-            with cols[idx]:
-                st.write("")
-                color = "#ef4444" if flg > 0 else "#3b82f6"
-                flag_badge = f'<div style="text-align: center; color: #ef4444; font-weight: 700; font-size: 0.7rem;">{flg}</div>' if flg > 0 else '<div style="height: 14px;"></div>'
-                st.markdown(f"""
-                <div style="display: flex; flex-direction: column; align-items: center; justify-content: flex-end; height: 160px;">
-                    {flag_badge}
-                    <div style="width: 100%; height: {val * 1.3}px; background: {color}; border-radius: 4px 4px 0 0;"></div>
-                    <div style="font-size: 0.65rem; color: var(--text-muted); margin-top: 4px; white-space: nowrap;">{day.split(' ')[1]}</div>
-                </div>
-                """, unsafe_allow_html=True)
-                
-        st.markdown("""
+        bars_html = "".join([
+            f"""<div style="flex: 1; display: flex; flex-direction: column; align-items: center; justify-content: flex-end; height: 100%;">
+                <div style="font-size: 0.68rem; font-weight: 700; color: #ef4444; height: 16px;">{flg if flg > 0 else ''}</div>
+                <div style="width: 80%; height: {val * 1.3}px; background: {'#ef4444' if flg > 0 else '#3b82f6'}; border-radius: 4px 4px 0 0;"></div>
+                <div style="font-size: 0.65rem; color: var(--text-muted); margin-top: 4px; white-space: nowrap;">{day.split(' ')[1]}</div>
+            </div>""" for day, val, flg in chart_data
+        ])
+
+        render_html(f"""
+        <div class="kpi-stat-card">
+            <div class="kpi-stat-header">
+                <strong style="color: var(--text-primary); font-size: 1rem;">Suspicious Volume & Alerts Timeline (14 Days)</strong>
+                <span style="color: #3b82f6;">📈</span>
+            </div>
+            <div style="height: 195px; display: flex; align-items: flex-end; gap: 6px; padding-top: 18px;">
+                {bars_html}
+            </div>
             <div style="display: flex; gap: 16px; justify-content: center; margin-top: 10px; font-size: 0.75rem; color: var(--text-secondary);">
                 <span><span style="display: inline-block; width: 10px; height: 10px; background: #3b82f6; border-radius: 2px;"></span> Normal Transactions</span>
                 <span><span style="display: inline-block; width: 10px; height: 10px; background: #ef4444; border-radius: 2px;"></span> Suspicious / Flagged Activity</span>
             </div>
         </div>
-        """, unsafe_allow_html=True)
+        """)
 
     st.write("")
 
@@ -681,7 +675,7 @@ if st.session_state.active_nav == "Dashboard":
     b_col1, b_col2 = st.columns([1.6, 1])
     
     with b_col1:
-        st.markdown("""
+        render_html("""
         <div class="kpi-stat-card">
             <div class="kpi-stat-header">
                 <div>
@@ -749,10 +743,10 @@ if st.session_state.active_nav == "Dashboard":
                 </div>
             </div>
         </div>
-        """, unsafe_allow_html=True)
+        """)
 
     with b_col2:
-        st.markdown("""
+        render_html("""
         <div class="kpi-stat-card">
             <div class="kpi-stat-header">
                 <strong style="color: var(--text-primary); font-size: 1rem;">Monitored Corridors</strong>
@@ -797,7 +791,7 @@ if st.session_state.active_nav == "Dashboard":
                 </div>
             </div>
         </div>
-        """, unsafe_allow_html=True)
+        """)
 
 # ------------------------------------------------------------------------------
 # 9. VIEW: NEURAL COPILOT ASSISTANT
