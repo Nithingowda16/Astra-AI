@@ -27,7 +27,7 @@ st.set_page_config(
 # 2. State Initialization
 # ------------------------------------------------------------------------------
 if "theme" not in st.session_state:
-    st.session_state.theme = "light"
+    st.session_state.theme = "dark"
 if "authenticated" not in st.session_state:
     st.session_state.authenticated = False
 if "auth_tab" not in st.session_state:
@@ -62,10 +62,11 @@ logo_light_b64 = get_asset_b64("frontend/public/assets/astra-logo-light.png")
 bg_dark_b64 = get_asset_b64("frontend/public/assets/login-bg.png")
 bg_light_b64 = get_asset_b64("frontend/public/assets/login-bg-light.png")
 
-current_theme = st.session_state.theme
-current_logo_b64 = logo_light_b64 if current_theme == "light" else logo_dark_b64
-current_bg_b64 = bg_light_b64 if current_theme == "light" else bg_dark_b64
 is_auth = st.session_state.authenticated
+# Strictly Dark Mode on Login Page (login page is exclusively dark mode, no light mode)
+current_theme = "dark" if not is_auth else st.session_state.theme
+current_logo_b64 = logo_dark_b64 if (not is_auth or current_theme == "dark") else logo_light_b64
+current_bg_b64 = bg_dark_b64 if (not is_auth or current_theme == "dark") else bg_light_b64
 
 # ------------------------------------------------------------------------------
 # 4. Master Apple Design System Stylesheet
@@ -699,15 +700,6 @@ st.markdown(apple_css, unsafe_allow_html=True)
 # 5. AUTHENTICATION GATEWAY (Apple Curvy Design, Zero Emojis)
 # ------------------------------------------------------------------------------
 if not st.session_state.authenticated:
-    # Top bar toggle on login page (Pure Toggle Case, Zero Words)
-    auth_t1, auth_t2 = st.columns([11, 1])
-    with auth_t2:
-        is_dark_auth = st.session_state.theme == "dark"
-        auth_toggle_val = st.toggle("", value=is_dark_auth, key="auth_theme_toggle", label_visibility="collapsed")
-        if auth_toggle_val != is_dark_auth:
-            st.session_state.theme = "dark" if auth_toggle_val else "light"
-            st.rerun()
-
     _, auth_center_col, _ = st.columns([1, 1.3, 1])
     
     with auth_center_col:
