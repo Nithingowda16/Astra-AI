@@ -141,25 +141,35 @@ apple_css = f"""
         color: var(--apple-text-primary);
     }}
     
-    /* 2. APPLE NATIVE iOS TOGGLE BAR STYLING */
+    /* 2. APPLE NATIVE iOS TOGGLE SWITCH (PURE TOGGLE CASE, ZERO WORDS) */
     [data-testid="stToggle"] {{
         display: inline-flex !important;
         align-items: center !important;
+        justify-content: center !important;
         margin: 0 !important;
         padding: 0 !important;
     }}
     [data-testid="stToggle"] label {{
-        font-size: 0.84rem !important;
-        font-weight: 600 !important;
-        color: var(--apple-text-primary) !important;
-        letter-spacing: -0.015em !important;
         cursor: pointer !important;
-        display: flex !important;
+        display: inline-flex !important;
         align-items: center !important;
-        gap: 8px !important;
+        justify-content: center !important;
+        gap: 0 !important;
+        margin: 0 !important;
+        padding: 0 !important;
+    }}
+    [data-testid="stToggle"] label p,
+    [data-testid="stToggle"] label span,
+    [data-testid="stToggle"] [data-testid="stMarkdownContainer"] {{
+        display: none !important;
+        visibility: hidden !important;
+        width: 0 !important;
+        height: 0 !important;
+        margin: 0 !important;
+        padding: 0 !important;
     }}
     [data-testid="stToggle"] div[data-baseweb="checkbox"] {{
-        margin-right: 0 !important;
+        margin: 0 !important;
     }}
     
     /* 3. APPLE CURVY BUTTONS & PILLS (MAIN AREA) */
@@ -375,53 +385,44 @@ apple_css = f"""
         color: #ffffff !important;
     }}
 
-    /* Sidebar iOS Theme Toggle Card Row */
+    /* Sidebar iOS Theme Toggle (Pure Toggle Case, Zero Words) */
     [data-testid="stSidebar"] div[data-testid="stToggle"],
     [data-testid="stSidebar"] div.stToggle,
     [data-testid="stSidebar"] div[data-testid="stCheckbox"] {{
         width: 100% !important;
-        background: var(--apple-card) !important;
-        border: 1px solid var(--apple-border) !important;
-        border-radius: 10px !important;
-        padding: 9px 14px !important;
-        margin-top: 6px !important;
-        margin-bottom: 6px !important;
+        background: transparent !important;
+        border: none !important;
+        box-shadow: none !important;
+        padding: 4px 0 !important;
+        margin: 6px 0 !important;
         box-sizing: border-box !important;
-        box-shadow: 0 1px 3px rgba(0, 0, 0, 0.02) !important;
         display: flex !important;
         align-items: center !important;
+        justify-content: center !important;
     }}
     [data-testid="stSidebar"] div[data-testid="stToggle"] label,
     [data-testid="stSidebar"] div.stToggle label,
     [data-testid="stSidebar"] div[data-testid="stCheckbox"] label {{
-        width: 100% !important;
-        display: flex !important;
+        width: auto !important;
+        display: inline-flex !important;
         align-items: center !important;
-        justify-content: space-between !important;
+        justify-content: center !important;
         cursor: pointer !important;
         margin: 0 !important;
         padding: 0 !important;
-    }}
-    [data-testid="stSidebar"] div[data-testid="stToggle"] label div[data-baseweb="checkbox"],
-    [data-testid="stSidebar"] div.stToggle label div[data-baseweb="checkbox"],
-    [data-testid="stSidebar"] div[data-testid="stCheckbox"] label div[data-baseweb="checkbox"] {{
-        order: 2 !important;
-        margin-left: auto !important;
-        margin-right: 0 !important;
-    }}
-    [data-testid="stSidebar"] div[data-testid="stToggle"] label > div:not([data-baseweb="checkbox"]),
-    [data-testid="stSidebar"] div.stToggle label > div:not([data-baseweb="checkbox"]),
-    [data-testid="stSidebar"] div[data-testid="stCheckbox"] label > div:not([data-baseweb="checkbox"]) {{
-        order: 1 !important;
+        gap: 0 !important;
     }}
     [data-testid="stSidebar"] div[data-testid="stToggle"] label p,
     [data-testid="stSidebar"] div.stToggle label p,
-    [data-testid="stSidebar"] div[data-testid="stCheckbox"] label p {{
-        font-size: 0.82rem !important;
-        font-weight: 600 !important;
-        color: var(--apple-text-primary) !important;
-        margin: 0 !important;
-        order: 1 !important;
+    [data-testid="stSidebar"] div[data-testid="stCheckbox"] label p,
+    [data-testid="stSidebar"] div[data-testid="stToggle"] [data-testid="stMarkdownContainer"] {{
+        display: none !important;
+        visibility: hidden !important;
+        width: 0 !important;
+        height: 0 !important;
+    }}
+    [data-testid="stSidebar"] div[data-baseweb="checkbox"] {{
+        margin: 0 auto !important;
     }}
 
     /* Sign Out Action Button in Sidebar (Apple Soft Red Action) */
@@ -698,11 +699,11 @@ st.markdown(apple_css, unsafe_allow_html=True)
 # 5. AUTHENTICATION GATEWAY (Apple Curvy Design, Zero Emojis)
 # ------------------------------------------------------------------------------
 if not st.session_state.authenticated:
-    # Top bar toggle on login page
-    auth_t1, auth_t2 = st.columns([10, 2])
+    # Top bar toggle on login page (Pure Toggle Case, Zero Words)
+    auth_t1, auth_t2 = st.columns([11, 1])
     with auth_t2:
         is_dark_auth = st.session_state.theme == "dark"
-        auth_toggle_val = st.toggle("Dark Mode", value=is_dark_auth, key="auth_theme_toggle")
+        auth_toggle_val = st.toggle("", value=is_dark_auth, key="auth_theme_toggle", label_visibility="collapsed")
         if auth_toggle_val != is_dark_auth:
             st.session_state.theme = "dark" if auth_toggle_val else "light"
             st.rerun()
@@ -861,9 +862,9 @@ with st.sidebar:
     </div>
     """)
     
-    # Apple iOS Theme Toggle Bar (Directly Above Sign Out in Side Nav)
+    # Apple iOS Theme Toggle Bar (Pure Toggle Case, Zero Words)
     is_dark_active = st.session_state.theme == "dark"
-    theme_toggle_val = st.toggle("Dark Mode", value=is_dark_active, key="sidebar_theme_toggle")
+    theme_toggle_val = st.toggle("", value=is_dark_active, key="sidebar_theme_toggle", label_visibility="collapsed")
     if theme_toggle_val != is_dark_active:
         st.session_state.theme = "dark" if theme_toggle_val else "light"
         st.rerun()
