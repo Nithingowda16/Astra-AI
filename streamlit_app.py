@@ -1,14 +1,16 @@
 # ==============================================================================
 # Astra AI — Enterprise Risk & Regulatory Intelligence Platform
-# Streamlit in Snowflake (SiS) Native Console Application
+# Streamlit Native Application with Authentication & Surveillance
 # ==============================================================================
 
 import streamlit as st
 import pandas as pd
 import numpy as np
+import base64
+import os
 
 # ------------------------------------------------------------------------------
-# 1. Page Configuration & Apple Font Dark Theme Styling
+# 1. Page Configuration & Apple SF Pro Dark Theme Styling
 # ------------------------------------------------------------------------------
 st.set_page_config(
     page_title="Astra AI — Risk & AML Surveillance",
@@ -17,62 +19,116 @@ st.set_page_config(
     initial_sidebar_state="expanded"
 )
 
-# Robust, Self-Contained High-End Styling (No external font downloads required)
-st.markdown("""
+# Helper to encode images
+def get_base64_image(image_path):
+    if os.path.exists(image_path):
+        with open(image_path, "rb") as img_file:
+            return base64.b64encode(img_file.read()).decode("utf-8")
+    return ""
+
+logo_b64 = get_base64_image("frontend/public/assets/astra-logo-dark.png")
+bg_b64 = get_base64_image("frontend/public/assets/login-bg.png")
+
+bg_style = f"background-image: url('data:image/png;base64,{bg_b64}'); background-size: cover; background-position: center;" if bg_b64 else "background: #0b0f19;"
+
+# Custom Styling
+st.markdown(f"""
 <style>
-    html, body, [class*="css"], [class*="st-"] {
+    html, body, [class*="css"], [class*="st-"] {{
         font-family: -apple-system, BlinkMacSystemFont, "SF Pro Text", "SF Pro Display", "Helvetica Neue", "Segoe UI", Roboto, Arial, sans-serif !important;
-    }
+    }}
     
+    /* Login Page Styling */
+    .login-container {{
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        min-height: 80vh;
+    }}
+    .login-card {{
+        background: rgba(18, 24, 38, 0.85);
+        border: 1px solid rgba(255, 255, 255, 0.12);
+        border-radius: 20px;
+        padding: 40px 36px;
+        width: 100%;
+        max-width: 440px;
+        backdrop-filter: blur(20px);
+        box-shadow: 0 25px 60px rgba(0, 0, 0, 0.6);
+        text-align: center;
+        margin: 0 auto;
+    }}
+    .login-title {{
+        font-size: 2rem;
+        font-weight: 700;
+        letter-spacing: -0.03em;
+        color: #ffffff;
+        margin: 12px 0 6px 0;
+    }}
+    .login-subtitle {{
+        color: #94a3b8;
+        font-size: 0.88rem;
+        margin-bottom: 24px;
+    }}
+    .demo-pill {{
+        background: rgba(14, 165, 233, 0.12);
+        border: 1px solid rgba(14, 165, 233, 0.3);
+        color: #38bdf8;
+        padding: 6px 12px;
+        border-radius: 8px;
+        font-size: 0.76rem;
+        margin-top: 14px;
+        display: inline-block;
+    }}
+
     /* Sleek metric card containers */
-    .metric-card {
+    .metric-card {{
         background: #161b22;
         border: 1px solid rgba(255, 255, 255, 0.1);
         border-radius: 12px;
         padding: 16px 18px;
         margin-bottom: 12px;
         box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
-    }
-    .metric-label {
+    }}
+    .metric-label {{
         font-size: 0.8rem;
         font-weight: 600;
         letter-spacing: 0.05em;
         text-transform: uppercase;
         color: #94a3b8;
-    }
-    .metric-value {
+    }}
+    .metric-value {{
         font-size: 1.8rem;
         font-weight: 700;
         letter-spacing: -0.02em;
         color: #f8fafc;
         margin: 4px 0;
-    }
-    .metric-sub {
+    }}
+    .metric-sub {{
         font-size: 0.78rem;
         color: #10b981;
-    }
-    .metric-sub.negative {
+    }}
+    .metric-sub.negative {{
         color: #ef4444;
-    }
+    }}
     
     /* Header branding */
-    .astra-header {
+    .astra-header {{
         display: flex;
         align-items: center;
         gap: 16px;
         padding: 8px 0 16px 0;
         border-bottom: 1px solid rgba(255, 255, 255, 0.1);
         margin-bottom: 20px;
-    }
-    .astra-title {
+    }}
+    .astra-title {{
         font-size: 1.7rem;
         font-weight: 700;
         letter-spacing: -0.03em;
         color: #38bdf8;
         margin: 0;
         display: inline-block;
-    }
-    .astra-badge {
+    }}
+    .astra-badge {{
         background: rgba(14, 165, 233, 0.18);
         border: 1px solid rgba(14, 165, 233, 0.4);
         color: #38bdf8;
@@ -83,12 +139,70 @@ st.markdown("""
         text-transform: uppercase;
         letter-spacing: 0.06em;
         margin-left: 10px;
-    }
+    }}
 </style>
 """, unsafe_allow_html=True)
 
 # ------------------------------------------------------------------------------
-# 2. Institutional Compliance Data
+# 2. Authentication State Management
+# ------------------------------------------------------------------------------
+if "authenticated" not in st.session_state:
+    st.session_state.authenticated = False
+if "user_role" not in st.session_state:
+    st.session_state.user_role = "Senior Risk Officer"
+
+def login_user(username, password):
+    if (username == "admin" and password == "password") or (username == "officer" and password == "password"):
+        st.session_state.authenticated = True
+        st.session_state.user_role = "Senior Risk Officer" if username == "admin" else "Compliance Officer"
+        st.rerun()
+    else:
+        st.error("Invalid credentials. Try: admin / password")
+
+def logout_user():
+    st.session_state.authenticated = False
+    st.rerun()
+
+# ------------------------------------------------------------------------------
+# 3. Render Login Screen (if not authenticated)
+# ------------------------------------------------------------------------------
+if not st.session_state.authenticated:
+    _, col_login, _ = st.columns([1, 1.2, 1])
+    
+    with col_login:
+        st.write("")
+        st.write("")
+        
+        logo_html = f'<img src="data:image/png;base64,{logo_b64}" width="72" height="72" style="margin-bottom: 8px;" />' if logo_b64 else '<span style="font-size: 3rem;">⚡</span>'
+        
+        st.markdown(f"""
+        <div style="text-align: center; margin-bottom: 24px;">
+            {logo_html}
+            <h1 class="login-title">Astra AI</h1>
+            <p class="login-subtitle">Enterprise Risk & Regulatory Intelligence Platform</p>
+        </div>
+        """, unsafe_allow_html=True)
+        
+        with st.form("astra_login_form"):
+            username = st.text_input("Username", value="admin", placeholder="e.g. admin")
+            password = st.text_input("Password", value="password", type="password")
+            
+            submitted = st.form_submit_button("Sign In to Astra AI", use_container_width=True)
+            if submitted:
+                login_user(username, password)
+                
+        st.markdown("""
+        <div style="text-align: center;">
+            <div class="demo-pill">
+                🔑 <strong>Access Profile:</strong> admin / password &bull; Senior Risk Officer
+            </div>
+        </div>
+        """, unsafe_allow_html=True)
+        
+    st.stop()
+
+# ------------------------------------------------------------------------------
+# 4. Institutional Compliance Data
 # ------------------------------------------------------------------------------
 @st.cache_data
 def get_compliance_data():
@@ -126,7 +240,7 @@ def get_compliance_data():
 df_customers, df_tx, df_cases = get_compliance_data()
 
 # ------------------------------------------------------------------------------
-# 3. Header & Status
+# 5. Header & User Profile Bar
 # ------------------------------------------------------------------------------
 col_hdr_left, col_hdr_right = st.columns([3, 1])
 with col_hdr_left:
@@ -145,16 +259,22 @@ with col_hdr_left:
     """, unsafe_allow_html=True)
 
 with col_hdr_right:
-    st.markdown("""
-    <div style="text-align: right; padding-top: 10px;">
-        <span style="display: inline-block; width: 8px; height: 8px; background-color: #10b981; border-radius: 50%; margin-right: 6px;"></span>
-        <span style="font-size: 0.8rem; color: #cbd5e1; font-weight: 500;">Snowflake Live</span><br>
-        <span style="font-size: 0.72rem; color: #64748b;">Engine: Cortex + Gemini RAG</span>
-    </div>
-    """, unsafe_allow_html=True)
+    col_u, col_o = st.columns([2, 1])
+    with col_u:
+        st.markdown(f"""
+        <div style="text-align: right; padding-top: 8px;">
+            <div style="font-size: 0.82rem; font-weight: 600; color: #f8fafc;">👤 {st.session_state.user_role}</div>
+            <span style="display: inline-block; width: 8px; height: 8px; background-color: #10b981; border-radius: 50%; margin-right: 4px;"></span>
+            <span style="font-size: 0.72rem; color: #94a3b8;">Active Session</span>
+        </div>
+        """, unsafe_allow_html=True)
+    with col_o:
+        st.write("")
+        if st.button("Sign Out", use_container_width=True):
+            logout_user()
 
 # ------------------------------------------------------------------------------
-# 4. Key Metrics
+# 6. Key Surveillance Metrics
 # ------------------------------------------------------------------------------
 m1, m2, m3, m4 = st.columns(4)
 
@@ -201,7 +321,7 @@ with m4:
 st.write("")
 
 # ------------------------------------------------------------------------------
-# 5. Interactive Tabs Navigation
+# 7. Interactive Tabs Navigation
 # ------------------------------------------------------------------------------
 tab_copilot, tab_transactions, tab_customers, tab_cases = st.tabs([
     "🧠 Neural Copilot (AI Reasoning)",
@@ -221,7 +341,7 @@ with tab_copilot:
         st.session_state.messages = [
             {
                 "role": "assistant",
-                "content": "👋 Greetings, Senior Risk Officer. I am Astra AI, connected to your Snowflake compliance surveillance environment. Ask me to evaluate suspicious transactions, review customer PEP exposure, generate SAR narratives, or assess sanction proximity."
+                "content": f"👋 Greetings, {st.session_state.user_role}. I am Astra AI, connected to your Snowflake compliance surveillance environment. Ask me to evaluate suspicious transactions, review customer PEP exposure, generate SAR narratives, or assess sanction proximity."
             }
         ]
 
@@ -311,7 +431,6 @@ with tab_transactions:
     if status_filter != "All":
         filtered_tx = filtered_tx[filtered_tx['Status'] == status_filter]
 
-    # Pre-formatted display columns for 100% stability across all Pandas/Streamlit versions
     display_tx = filtered_tx.copy()
     display_tx['Amount'] = display_tx['Amount'].apply(lambda x: f"₹{x:,.2f}")
     display_tx['Anomaly Score'] = display_tx['Anomaly Score'].apply(lambda x: f"{x:.2f}")

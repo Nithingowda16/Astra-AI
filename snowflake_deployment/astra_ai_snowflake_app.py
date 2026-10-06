@@ -1,16 +1,16 @@
 # ==============================================================================
 # Astra AI — Enterprise Risk & Regulatory Intelligence Platform
-# Streamlit in Snowflake (SiS) Native Console Application
+# Streamlit Native Application with Authentication & Surveillance
 # ==============================================================================
 
 import streamlit as st
 import pandas as pd
 import numpy as np
-import datetime
-import json
+import base64
+import os
 
 # ------------------------------------------------------------------------------
-# 1. Page Configuration & Apple SF Pro Dark Theme Aesthetics
+# 1. Page Configuration & Apple SF Pro Dark Theme Styling
 # ------------------------------------------------------------------------------
 st.set_page_config(
     page_title="Astra AI — Risk & AML Surveillance",
@@ -19,163 +19,220 @@ st.set_page_config(
     initial_sidebar_state="expanded"
 )
 
-# Custom High-End Styling
-st.markdown("""
+# Helper to encode images
+def get_base64_image(image_path):
+    if os.path.exists(image_path):
+        with open(image_path, "rb") as img_file:
+            return base64.b64encode(img_file.read()).decode("utf-8")
+    return ""
+
+logo_b64 = get_base64_image("frontend/public/assets/astra-logo-dark.png")
+bg_b64 = get_base64_image("frontend/public/assets/login-bg.png")
+
+bg_style = f"background-image: url('data:image/png;base64,{bg_b64}'); background-size: cover; background-position: center;" if bg_b64 else "background: #0b0f19;"
+
+# Custom Styling
+st.markdown(f"""
 <style>
-    @import url('https://fonts.cdnfonts.com/css/sf-pro-display');
+    html, body, [class*="css"], [class*="st-"] {{
+        font-family: -apple-system, BlinkMacSystemFont, "SF Pro Text", "SF Pro Display", "Helvetica Neue", "Segoe UI", Roboto, Arial, sans-serif !important;
+    }}
     
-    html, body, [class*="css"] {
-        font-family: -apple-system, BlinkMacSystemFont, "SF Pro Display", "SF Pro Text", "Segoe UI", Roboto, Helvetica, Arial, sans-serif !important;
-    }
-    
-    /* Sleek card containers */
-    .metric-card {
-        background: rgba(22, 27, 34, 0.75);
-        border: 1px solid rgba(255, 255, 255, 0.08);
+    /* Login Page Styling */
+    .login-container {{
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        min-height: 80vh;
+    }}
+    .login-card {{
+        background: rgba(18, 24, 38, 0.85);
+        border: 1px solid rgba(255, 255, 255, 0.12);
+        border-radius: 20px;
+        padding: 40px 36px;
+        width: 100%;
+        max-width: 440px;
+        backdrop-filter: blur(20px);
+        box-shadow: 0 25px 60px rgba(0, 0, 0, 0.6);
+        text-align: center;
+        margin: 0 auto;
+    }}
+    .login-title {{
+        font-size: 2rem;
+        font-weight: 700;
+        letter-spacing: -0.03em;
+        color: #ffffff;
+        margin: 12px 0 6px 0;
+    }}
+    .login-subtitle {{
+        color: #94a3b8;
+        font-size: 0.88rem;
+        margin-bottom: 24px;
+    }}
+    .demo-pill {{
+        background: rgba(14, 165, 233, 0.12);
+        border: 1px solid rgba(14, 165, 233, 0.3);
+        color: #38bdf8;
+        padding: 6px 12px;
+        border-radius: 8px;
+        font-size: 0.76rem;
+        margin-top: 14px;
+        display: inline-block;
+    }}
+
+    /* Sleek metric card containers */
+    .metric-card {{
+        background: #161b22;
+        border: 1px solid rgba(255, 255, 255, 0.1);
         border-radius: 12px;
-        padding: 18px 20px;
-        backdrop-filter: blur(12px);
+        padding: 16px 18px;
         margin-bottom: 12px;
-        transition: transform 0.2s ease, border-color 0.2s ease;
-    }
-    .metric-card:hover {
-        border-color: rgba(6, 182, 212, 0.4);
-        transform: translateY(-2px);
-    }
-    .metric-label {
-        font-size: 0.82rem;
-        font-weight: 500;
+        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+    }}
+    .metric-label {{
+        font-size: 0.8rem;
+        font-weight: 600;
         letter-spacing: 0.05em;
         text-transform: uppercase;
         color: #94a3b8;
-    }
-    .metric-value {
-        font-size: 1.85rem;
+    }}
+    .metric-value {{
+        font-size: 1.8rem;
         font-weight: 700;
         letter-spacing: -0.02em;
         color: #f8fafc;
         margin: 4px 0;
-    }
-    .metric-sub {
+    }}
+    .metric-sub {{
         font-size: 0.78rem;
         color: #10b981;
-    }
-    .metric-sub.negative {
+    }}
+    .metric-sub.negative {{
         color: #ef4444;
-    }
+    }}
     
     /* Header branding */
-    .astra-header {
+    .astra-header {{
         display: flex;
         align-items: center;
         gap: 16px;
-        padding: 12px 0 20px 0;
-        border-bottom: 1px solid rgba(255, 255, 255, 0.08);
-        margin-bottom: 24px;
-    }
-    .astra-title {
-        font-size: 1.6rem;
+        padding: 8px 0 16px 0;
+        border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+        margin-bottom: 20px;
+    }}
+    .astra-title {{
+        font-size: 1.7rem;
         font-weight: 700;
         letter-spacing: -0.03em;
-        background: linear-gradient(135deg, #ffffff 30%, #38bdf8 100%);
-        -webkit-background-clip: text;
-        -webkit-text-fill-color: transparent;
+        color: #38bdf8;
         margin: 0;
-    }
-    .astra-badge {
-        background: rgba(14, 165, 233, 0.15);
-        border: 1px solid rgba(14, 165, 233, 0.35);
+        display: inline-block;
+    }}
+    .astra-badge {{
+        background: rgba(14, 165, 233, 0.18);
+        border: 1px solid rgba(14, 165, 233, 0.4);
         color: #38bdf8;
         font-size: 0.72rem;
         font-weight: 600;
-        padding: 4px 10px;
+        padding: 3px 10px;
         border-radius: 9999px;
         text-transform: uppercase;
         letter-spacing: 0.06em;
-    }
-
-    /* Risk Badges */
-    .badge-critical {
-        background: rgba(239, 68, 68, 0.18);
-        color: #f87171;
-        border: 1px solid rgba(239, 68, 68, 0.3);
-        padding: 2px 8px;
-        border-radius: 6px;
-        font-weight: 600;
-        font-size: 0.75rem;
-    }
-    .badge-high {
-        background: rgba(249, 115, 22, 0.18);
-        color: #fb923c;
-        border: 1px solid rgba(249, 115, 22, 0.3);
-        padding: 2px 8px;
-        border-radius: 6px;
-        font-weight: 600;
-        font-size: 0.75rem;
-    }
-    .badge-medium {
-        background: rgba(234, 179, 8, 0.18);
-        color: #facc15;
-        border: 1px solid rgba(234, 179, 8, 0.3);
-        padding: 2px 8px;
-        border-radius: 6px;
-        font-weight: 600;
-        font-size: 0.75rem;
-    }
-    .badge-low {
-        background: rgba(34, 197, 94, 0.18);
-        color: #4ade80;
-        border: 1px solid rgba(34, 197, 94, 0.3);
-        padding: 2px 8px;
-        border-radius: 6px;
-        font-weight: 600;
-        font-size: 0.75rem;
-    }
+        margin-left: 10px;
+    }}
 </style>
 """, unsafe_allow_html=True)
 
 # ------------------------------------------------------------------------------
-# 2. Snowflake Active Session (Graceful fallback for Local or Cloud execution)
+# 2. Authentication State Management
 # ------------------------------------------------------------------------------
-snowflake_session = None
-try:
-    from snowflake.snowpark.context import get_active_session
-    snowflake_session = get_active_session()
-except Exception:
-    snowflake_session = None
+if "authenticated" not in st.session_state:
+    st.session_state.authenticated = False
+if "user_role" not in st.session_state:
+    st.session_state.user_role = "Senior Risk Officer"
+
+def login_user(username, password):
+    if (username == "admin" and password == "password") or (username == "officer" and password == "password"):
+        st.session_state.authenticated = True
+        st.session_state.user_role = "Senior Risk Officer" if username == "admin" else "Compliance Officer"
+        st.rerun()
+    else:
+        st.error("Invalid credentials. Try: admin / password")
+
+def logout_user():
+    st.session_state.authenticated = False
+    st.rerun()
 
 # ------------------------------------------------------------------------------
-# 3. Seed / Cache Data (Institutional AML & Risk Records)
+# 3. Render Login Screen (if not authenticated)
+# ------------------------------------------------------------------------------
+if not st.session_state.authenticated:
+    _, col_login, _ = st.columns([1, 1.2, 1])
+    
+    with col_login:
+        st.write("")
+        st.write("")
+        
+        logo_html = f'<img src="data:image/png;base64,{logo_b64}" width="72" height="72" style="margin-bottom: 8px;" />' if logo_b64 else '<span style="font-size: 3rem;">⚡</span>'
+        
+        st.markdown(f"""
+        <div style="text-align: center; margin-bottom: 24px;">
+            {logo_html}
+            <h1 class="login-title">Astra AI</h1>
+            <p class="login-subtitle">Enterprise Risk & Regulatory Intelligence Platform</p>
+        </div>
+        """, unsafe_allow_html=True)
+        
+        with st.form("astra_login_form"):
+            username = st.text_input("Username", value="admin", placeholder="e.g. admin")
+            password = st.text_input("Password", value="password", type="password")
+            
+            submitted = st.form_submit_button("Sign In to Astra AI", use_container_width=True)
+            if submitted:
+                login_user(username, password)
+                
+        st.markdown("""
+        <div style="text-align: center;">
+            <div class="demo-pill">
+                🔑 <strong>Access Profile:</strong> admin / password &bull; Senior Risk Officer
+            </div>
+        </div>
+        """, unsafe_allow_html=True)
+        
+    st.stop()
+
+# ------------------------------------------------------------------------------
+# 4. Institutional Compliance Data
 # ------------------------------------------------------------------------------
 @st.cache_data
 def get_compliance_data():
     customers = [
-        {"customer_id": "CUST-1008", "full_name": "Vikramaditya Singhania", "country": "India", "occupation": "Import-Export Director", "account_type": "Corporate", "kyc_status": "Enhanced Due Diligence", "risk_score": 88, "risk_level": "HIGH", "is_pep": True, "monthly_vol": 480000.0},
-        {"customer_id": "CUST-1003", "full_name": "Devendra Patil", "country": "India", "occupation": "Financial Broker", "account_type": "Savings", "kyc_status": "Verified", "risk_score": 78, "risk_level": "HIGH", "is_pep": False, "monthly_vol": 150000.0},
-        {"customer_id": "CUST-1004", "full_name": "Hon. Rameshwar Prasad", "country": "India", "occupation": "Legislative Committee Member", "account_type": "Current", "kyc_status": "Enhanced Due Diligence", "risk_score": 82, "risk_level": "HIGH", "is_pep": True, "monthly_vol": 600000.0},
-        {"customer_id": "CUST-1005", "full_name": "Global Trade Nexus LLC", "country": "United Arab Emirates", "occupation": "Cross-Border Commodities", "account_type": "Corporate", "kyc_status": "Verified", "risk_score": 68, "risk_level": "MEDIUM", "is_pep": False, "monthly_vol": 1500000.0},
-        {"customer_id": "CUST-1009", "full_name": "Siddharth Verma", "country": "Singapore", "occupation": "Fintech Solutions Director", "account_type": "Current", "kyc_status": "Verified", "risk_score": 54, "risk_level": "MEDIUM", "is_pep": False, "monthly_vol": 320000.0},
-        {"customer_id": "CUST-1001", "full_name": "Ananya Sharma", "country": "India", "occupation": "Lead Cloud Architect", "account_type": "Savings", "kyc_status": "Verified", "risk_score": 12, "risk_level": "LOW", "is_pep": False, "monthly_vol": 95000.0},
-        {"customer_id": "CUST-1002", "full_name": "Rajesh Kumar Gupta", "country": "India", "occupation": "Wholesale Electronics Merchant", "account_type": "Current", "kyc_status": "Verified", "risk_score": 24, "risk_level": "LOW", "is_pep": False, "monthly_vol": 480000.0},
-        {"customer_id": "CUST-1006", "full_name": "Dr. Priya Sundaram", "country": "United Kingdom", "occupation": "Chief Cardiologist", "account_type": "Savings", "kyc_status": "Verified", "risk_score": 15, "risk_level": "LOW", "is_pep": False, "monthly_vol": 180000.0},
-        {"customer_id": "CUST-1007", "full_name": "Apex Logistics Corridors", "country": "Cyprus", "occupation": "Maritime Freight Transit", "account_type": "Corporate", "kyc_status": "Under Review", "risk_score": 74, "risk_level": "HIGH", "is_pep": False, "monthly_vol": 2800000.0},
-        {"customer_id": "CUST-1010", "full_name": "Kavita Mehra", "country": "India", "occupation": "Architectural Designer", "account_type": "Savings", "kyc_status": "Verified", "risk_score": 18, "risk_level": "LOW", "is_pep": False, "monthly_vol": 140000.0},
+        {"Customer ID": "CUST-1008", "Full Name": "Vikramaditya Singhania", "Country": "India", "Occupation": "Import-Export Director", "Account Type": "Corporate", "KYC Status": "Enhanced Due Diligence", "Risk Score": 88, "Risk Level": "HIGH", "PEP": "Yes", "Monthly Volume": 480000.0},
+        {"Customer ID": "CUST-1003", "Full Name": "Devendra Patil", "Country": "India", "Occupation": "Financial Broker", "Account Type": "Savings", "KYC Status": "Verified", "Risk Score": 78, "Risk Level": "HIGH", "PEP": "No", "Monthly Volume": 150000.0},
+        {"Customer ID": "CUST-1004", "Full Name": "Hon. Rameshwar Prasad", "Country": "India", "Occupation": "Legislative Committee Member", "Account Type": "Current", "KYC Status": "Enhanced Due Diligence", "Risk Score": 82, "Risk Level": "HIGH", "PEP": "Yes", "Monthly Volume": 600000.0},
+        {"Customer ID": "CUST-1005", "Full Name": "Global Trade Nexus LLC", "Country": "UAE", "Occupation": "Cross-Border Commodities", "Account Type": "Corporate", "KYC Status": "Verified", "Risk Score": 68, "Risk Level": "MEDIUM", "PEP": "No", "Monthly Volume": 1500000.0},
+        {"Customer ID": "CUST-1009", "Full Name": "Siddharth Verma", "Country": "Singapore", "Occupation": "Fintech Solutions Director", "Account Type": "Current", "KYC Status": "Verified", "Risk Score": 54, "Risk Level": "MEDIUM", "PEP": "No", "Monthly Volume": 320000.0},
+        {"Customer ID": "CUST-1001", "Full Name": "Ananya Sharma", "Country": "India", "Occupation": "Lead Cloud Architect", "Account Type": "Savings", "KYC Status": "Verified", "Risk Score": 12, "Risk Level": "LOW", "PEP": "No", "Monthly Volume": 95000.0},
+        {"Customer ID": "CUST-1002", "Full Name": "Rajesh Kumar Gupta", "Country": "India", "Occupation": "Wholesale Electronics Merchant", "Account Type": "Current", "KYC Status": "Verified", "Risk Score": 24, "Risk Level": "LOW", "PEP": "No", "Monthly Volume": 480000.0},
+        {"Customer ID": "CUST-1006", "Full Name": "Dr. Priya Sundaram", "Country": "United Kingdom", "Occupation": "Chief Cardiologist", "Account Type": "Savings", "KYC Status": "Verified", "Risk Score": 15, "Risk Level": "LOW", "PEP": "No", "Monthly Volume": 180000.0},
+        {"Customer ID": "CUST-1007", "Full Name": "Apex Logistics Corridors", "Country": "Cyprus", "Occupation": "Maritime Freight Transit", "Account Type": "Corporate", "KYC Status": "Under Review", "Risk Score": 74, "Risk Level": "HIGH", "PEP": "No", "Monthly Volume": 2800000.0},
+        {"Customer ID": "CUST-1010", "Full Name": "Kavita Mehra", "Country": "India", "Occupation": "Architectural Designer", "Account Type": "Savings", "KYC Status": "Verified", "Risk Score": 18, "Risk Level": "LOW", "PEP": "No", "Monthly Volume": 140000.0},
     ]
     
     transactions = [
-        {"tx_id": "TXN-88491", "customer": "Vikramaditya Singhania", "amount": 485000.0, "currency": "INR", "type": "WIRE_OUTBOUND", "counterparty": "Al-Bahrani General Trading (UAE)", "anomaly_score": 0.94, "status": "FLAGGED", "trigger": "Rapid Layering / High-Risk Corridor", "timestamp": "2026-10-05 17:42:10"},
-        {"tx_id": "TXN-88489", "customer": "Devendra Patil", "amount": 99500.0, "currency": "INR", "type": "CASH_DEPOSIT", "counterparty": "Multiple Branch Cashiers", "anomaly_score": 0.88, "status": "FLAGGED", "trigger": "Smurfing / Structuring under reporting cap", "timestamp": "2026-10-05 16:30:15"},
-        {"tx_id": "TXN-88485", "customer": "Hon. Rameshwar Prasad", "amount": 750000.0, "currency": "INR", "type": "RTGS_INBOUND", "counterparty": "Aethelgard Consulting S.A.", "anomaly_score": 0.91, "status": "UNDER_INVESTIGATION", "trigger": "PEP Exposure / Unexplained Wealth Order", "timestamp": "2026-10-05 15:18:02"},
-        {"tx_id": "TXN-88480", "customer": "Apex Logistics Corridors", "amount": 1420000.0, "currency": "USD", "type": "SWIFT_TRANSFER", "counterparty": "Bosphorus Maritime Trading", "anomaly_score": 0.85, "status": "FLAGGED", "trigger": "Sanctions Proximity / Offshore Gateway", "timestamp": "2026-10-05 14:05:40"},
-        {"tx_id": "TXN-88472", "customer": "Global Trade Nexus LLC", "amount": 320000.0, "currency": "INR", "type": "VENDOR_PAYMENT", "counterparty": "Shenzhen Electrotech Corp", "anomaly_score": 0.42, "status": "CLEARED", "trigger": "Standard Trade Flow", "timestamp": "2026-10-05 12:44:11"},
-        {"tx_id": "TXN-88465", "customer": "Ananya Sharma", "amount": 18500.0, "currency": "INR", "type": "UPI_TRANSFER", "counterparty": "Urban Merchant Pay", "anomaly_score": 0.05, "status": "CLEARED", "trigger": "Normal Personal Spending", "timestamp": "2026-10-05 11:20:00"},
-        {"tx_id": "TXN-88461", "customer": "Siddharth Verma", "amount": 125000.0, "currency": "INR", "type": "NEFT_OUTBOUND", "counterparty": "CloudScale Hosting SG", "anomaly_score": 0.38, "status": "CLEARED", "trigger": "Routine SaaS Billing", "timestamp": "2026-10-05 10:14:22"},
+        {"Tx ID": "TXN-88491", "Customer": "Vikramaditya Singhania", "Amount": 485000.0, "Currency": "INR", "Type": "WIRE_OUTBOUND", "Counterparty": "Al-Bahrani General Trading (UAE)", "Anomaly Score": 0.94, "Status": "FLAGGED", "Trigger Reason": "Rapid Layering / High-Risk Corridor", "Timestamp": "2026-10-05 17:42:10"},
+        {"Tx ID": "TXN-88489", "Customer": "Devendra Patil", "Amount": 99500.0, "Currency": "INR", "Type": "CASH_DEPOSIT", "Counterparty": "Multiple Branch Cashiers", "Anomaly Score": 0.88, "Status": "FLAGGED", "Trigger Reason": "Smurfing / Structuring under reporting cap", "Timestamp": "2026-10-05 16:30:15"},
+        {"Tx ID": "TXN-88485", "Customer": "Hon. Rameshwar Prasad", "Amount": 750000.0, "Currency": "INR", "Type": "RTGS_INBOUND", "Counterparty": "Aethelgard Consulting S.A.", "Anomaly Score": 0.91, "Status": "UNDER_INVESTIGATION", "Trigger Reason": "PEP Exposure / Unexplained Wealth Order", "Timestamp": "2026-10-05 15:18:02"},
+        {"Tx ID": "TXN-88480", "Customer": "Apex Logistics Corridors", "Amount": 1420000.0, "Currency": "USD", "Type": "SWIFT_TRANSFER", "Counterparty": "Bosphorus Maritime Trading", "Anomaly Score": 0.85, "Status": "FLAGGED", "Trigger Reason": "Sanctions Proximity / Offshore Gateway", "Timestamp": "2026-10-05 14:05:40"},
+        {"Tx ID": "TXN-88472", "Customer": "Global Trade Nexus LLC", "Amount": 320000.0, "Currency": "INR", "Type": "VENDOR_PAYMENT", "Counterparty": "Shenzhen Electrotech Corp", "Anomaly Score": 0.42, "Status": "CLEARED", "Trigger Reason": "Standard Trade Flow", "Timestamp": "2026-10-05 12:44:11"},
+        {"Tx ID": "TXN-88465", "Customer": "Ananya Sharma", "Amount": 18500.0, "Currency": "INR", "Type": "UPI_TRANSFER", "Counterparty": "Urban Merchant Pay", "Anomaly Score": 0.05, "Status": "CLEARED", "Trigger Reason": "Normal Personal Spending", "Timestamp": "2026-10-05 11:20:00"},
+        {"Tx ID": "TXN-88461", "Customer": "Siddharth Verma", "Amount": 125000.0, "Currency": "INR", "Type": "NEFT_OUTBOUND", "Counterparty": "CloudScale Hosting SG", "Anomaly Score": 0.38, "Status": "CLEARED", "Trigger Reason": "Routine SaaS Billing", "Timestamp": "2026-10-05 10:14:22"},
     ]
     
     cases = [
-        {"case_id": "CASE-4091", "subject": "Singhania Trade Horizon Layering", "assigned_to": "Senior Risk Officer", "priority": "CRITICAL", "stage": "SAR In Preparation", "filing_deadline": "2026-10-08", "evidence_count": 7},
-        {"case_id": "CASE-4088", "subject": "Structuring Inquiries — D. Patil Branches", "assigned_to": "Compliance Analyst", "priority": "HIGH", "stage": "Request for Information (RFI)", "filing_deadline": "2026-10-12", "evidence_count": 4},
-        {"case_id": "CASE-4075", "subject": "Apex Logistics Bosphorus Sanctions Check", "assigned_to": "Chief Sanctions Officer", "priority": "HIGH", "stage": "Escalated to MLRO", "filing_deadline": "2026-10-09", "evidence_count": 12},
+        {"Case ID": "CASE-4091", "Subject": "Singhania Trade Horizon Layering", "Assigned To": "Senior Risk Officer", "Priority": "CRITICAL", "Stage": "SAR In Preparation", "Filing Deadline": "2026-10-08", "Evidence Count": 7},
+        {"Case ID": "CASE-4088", "Subject": "Structuring Inquiries — D. Patil Branches", "Assigned To": "Compliance Officer", "Priority": "HIGH", "Stage": "Request for Information (RFI)", "Filing Deadline": "2026-10-12", "Evidence Count": 4},
+        {"Case ID": "CASE-4075", "Subject": "Apex Logistics Bosphorus Sanctions Check", "Assigned To": "Chief Sanctions Officer", "Priority": "HIGH", "Stage": "Escalated to MLRO", "Filing Deadline": "2026-10-09", "Evidence Count": 12},
     ]
     
     return pd.DataFrame(customers), pd.DataFrame(transactions), pd.DataFrame(cases)
@@ -183,42 +240,46 @@ def get_compliance_data():
 df_customers, df_tx, df_cases = get_compliance_data()
 
 # ------------------------------------------------------------------------------
-# 4. Header & Branding Section
+# 5. Header & User Profile Bar
 # ------------------------------------------------------------------------------
 col_hdr_left, col_hdr_right = st.columns([3, 1])
 with col_hdr_left:
     st.markdown("""
     <div class="astra-header">
         <div>
-            <div style="display: flex; align-items: center; gap: 10px;">
-                <span style="font-size: 2rem;">⚡</span>
-                <span class="astra-title">Astra AI</span>
+            <div style="display: flex; align-items: center;">
+                <span class="astra-title">⚡ Astra AI</span>
                 <span class="astra-badge">Snowflake Enterprise</span>
             </div>
             <p style="color: #94a3b8; font-size: 0.88rem; margin: 4px 0 0 0;">
-                Next-Gen AML/KYC Surveillance, Transaction Anomaly Detection & Regulatory Copilot
+                Autonomous AML/KYC Surveillance, Transaction Anomaly Detection & Regulatory Copilot
             </p>
         </div>
     </div>
     """, unsafe_allow_html=True)
 
 with col_hdr_right:
-    env_label = "Snowflake Snowpark Active" if snowflake_session else "Snowflake Local Simulation"
-    st.markdown(f"""
-    <div style="text-align: right; padding-top: 10px;">
-        <span style="display: inline-block; width: 8px; height: 8px; background-color: #10b981; border-radius: 50%; margin-right: 6px;"></span>
-        <span style="font-size: 0.8rem; color: #cbd5e1; font-weight: 500;">{env_label}</span><br>
-        <span style="font-size: 0.72rem; color: #64748b;">Engine: Cortex + Gemini RAG</span>
-    </div>
-    """, unsafe_allow_html=True)
+    col_u, col_o = st.columns([2, 1])
+    with col_u:
+        st.markdown(f"""
+        <div style="text-align: right; padding-top: 8px;">
+            <div style="font-size: 0.82rem; font-weight: 600; color: #f8fafc;">👤 {st.session_state.user_role}</div>
+            <span style="display: inline-block; width: 8px; height: 8px; background-color: #10b981; border-radius: 50%; margin-right: 4px;"></span>
+            <span style="font-size: 0.72rem; color: #94a3b8;">Active Session</span>
+        </div>
+        """, unsafe_allow_html=True)
+    with col_o:
+        st.write("")
+        if st.button("Sign Out", use_container_width=True):
+            logout_user()
 
 # ------------------------------------------------------------------------------
-# 5. Top Key Risk & Surveillance Metrics
+# 6. Key Surveillance Metrics
 # ------------------------------------------------------------------------------
 m1, m2, m3, m4 = st.columns(4)
 
 with m1:
-    high_risk_count = len(df_customers[df_customers['risk_level'] == 'HIGH'])
+    high_risk_count = int((df_customers['Risk Level'] == 'HIGH').sum())
     st.markdown(f"""
     <div class="metric-card">
         <div class="metric-label">High-Risk Entities</div>
@@ -228,7 +289,7 @@ with m1:
     """, unsafe_allow_html=True)
 
 with m2:
-    flagged_vol = df_tx[df_tx['status'] == 'FLAGGED']['amount'].sum()
+    flagged_vol = df_tx[df_tx['Status'] == 'FLAGGED']['Amount'].sum()
     st.markdown(f"""
     <div class="metric-card">
         <div class="metric-label">Flagged Volume (24h)</div>
@@ -238,7 +299,7 @@ with m2:
     """, unsafe_allow_html=True)
 
 with m3:
-    critical_alerts = len(df_tx[df_tx['anomaly_score'] >= 0.85])
+    critical_alerts = int((df_tx['Anomaly Score'] >= 0.85).sum())
     st.markdown(f"""
     <div class="metric-card">
         <div class="metric-label">Critical Anomaly Alerts</div>
@@ -260,7 +321,7 @@ with m4:
 st.write("")
 
 # ------------------------------------------------------------------------------
-# 6. Primary Tabs Navigation
+# 7. Interactive Tabs Navigation
 # ------------------------------------------------------------------------------
 tab_copilot, tab_transactions, tab_customers, tab_cases = st.tabs([
     "🧠 Neural Copilot (AI Reasoning)",
@@ -270,52 +331,50 @@ tab_copilot, tab_transactions, tab_customers, tab_cases = st.tabs([
 ])
 
 # ------------------------------------------------------------------------------
-# TAB 1: Neural Copilot (Cortex + Gemini Integration)
+# TAB 1: Neural Copilot
 # ------------------------------------------------------------------------------
 with tab_copilot:
     st.subheader("Astra AI Neural Risk Assistant")
-    st.caption("Context-grounded reasoning powered by Snowflake Cortex AI and Astra Database RAG.")
+    st.caption("Context-grounded reasoning powered by Snowflake Cortex AI and Astra Compliance Records.")
 
-    # Initialize chat history
     if "messages" not in st.session_state:
         st.session_state.messages = [
             {
                 "role": "assistant",
-                "content": "👋 Greetings, Senior Risk Officer. I am Astra AI, connected to your Snowflake compliance surveillance environment. Ask me to evaluate suspicious transactions, review customer PEP exposure, generate SAR narratives, or assess sanction proximity."
+                "content": f"👋 Greetings, {st.session_state.user_role}. I am Astra AI, connected to your Snowflake compliance surveillance environment. Ask me to evaluate suspicious transactions, review customer PEP exposure, generate SAR narratives, or assess sanction proximity."
             }
         ]
 
-    # Display chat messages
     for msg in st.session_state.messages:
         with st.chat_message(msg["role"]):
             st.markdown(msg["content"])
 
-    # Chat prompt input
-    if prompt := st.chat_input("Ask Astra AI (e.g., 'Analyze Vikramaditya Singhania for rapid layering' or 'Draft a SAR summary')"):
+    if prompt := st.chat_input("Ask Astra AI (e.g., 'Analyze Vikramaditya Singhania for rapid layering' or 'Draft SAR summary')"):
         st.session_state.messages.append({"role": "user", "content": prompt})
         with st.chat_message("user"):
             st.markdown(prompt)
 
-        # AI Reasoning logic (Snowflake Cortex or Built-in Intelligent Fallback)
         with st.chat_message("assistant"):
-            with st.spinner("Astra Neural Copilot is analyzing Snowflake compliance records..."):
+            with st.spinner("Astra Neural Copilot is analyzing compliance records..."):
                 response_text = ""
                 
-                # Try Snowflake Cortex if session is active
-                if snowflake_session:
-                    try:
-                        cortex_query = f"""
-                        SELECT SNOWFLAKE.CORTEX.COMPLETE(
-                            'mistral-large2',
-                            'You are Astra AI, an institutional financial crime and AML compliance copilot. Answer the following risk inquiry based on high-risk accounts (Vikramaditya Singhania, Devendra Patil, Rameshwar Prasad): {prompt}'
-                        ) AS AI_RESPONSE
-                        """
-                        result = snowflake_session.sql(cortex_query).collect()
+                # Check for Snowflake Cortex if session is available
+                try:
+                    conn = st.connection("snowflake")
+                    session = conn.session()
+                    cortex_query = f"""
+                    SELECT SNOWFLAKE.CORTEX.COMPLETE(
+                        'mistral-large2',
+                        'You are Astra AI, an institutional AML compliance copilot. Answer this inquiry based on compliance records: {prompt}'
+                    ) AS AI_RESPONSE
+                    """
+                    result = session.sql(cortex_query).collect()
+                    if result and len(result) > 0:
                         response_text = result[0]['AI_RESPONSE']
-                    except Exception:
-                        response_text = ""
+                except Exception:
+                    response_text = ""
 
-                # Fallback intelligent contextual response
+                # Context-grounded intelligent fallback
                 if not response_text:
                     p_lower = prompt.lower()
                     if "singhania" in p_lower or "layering" in p_lower:
@@ -365,27 +424,26 @@ with tab_transactions:
     filtered_tx = df_tx.copy()
     if search_tx:
         filtered_tx = filtered_tx[
-            filtered_tx['customer'].str.contains(search_tx, case=False) |
-            filtered_tx['tx_id'].str.contains(search_tx, case=False) |
-            filtered_tx['counterparty'].str.contains(search_tx, case=False)
+            filtered_tx['Customer'].str.contains(search_tx, case=False) |
+            filtered_tx['Tx ID'].str.contains(search_tx, case=False) |
+            filtered_tx['Counterparty'].str.contains(search_tx, case=False)
         ]
     if status_filter != "All":
-        filtered_tx = filtered_tx[filtered_tx['status'] == status_filter]
+        filtered_tx = filtered_tx[filtered_tx['Status'] == status_filter]
 
-    st.dataframe(
-        filtered_tx.style.format({"amount": "₹{:,.2f}", "anomaly_score": "{:.2f}"}),
-        use_container_width=True,
-        height=320
-    )
+    display_tx = filtered_tx.copy()
+    display_tx['Amount'] = display_tx['Amount'].apply(lambda x: f"₹{x:,.2f}")
+    display_tx['Anomaly Score'] = display_tx['Anomaly Score'].apply(lambda x: f"{x:.2f}")
+
+    st.dataframe(display_tx, use_container_width=True, height=320)
     
-    # Quick Action Buttons
     col_b1, col_b2, col_b3 = st.columns([1, 1, 2])
     with col_b1:
-        if st.button("🚩 Flag for SAR Filing", use_container_width=True):
+        if st.button("🚩 Flag for SAR Review", use_container_width=True):
             st.success("Selected transactions added to Case Review Queue.")
     with col_b2:
-        if st.button("📥 Export CSV", use_container_width=True):
-            st.info("Exporting audit snapshot...")
+        if st.button("📥 Export Audit Snapshot", use_container_width=True):
+            st.info("Audit snapshot generated.")
 
 # ------------------------------------------------------------------------------
 # TAB 3: Customer AML / KYC Risk Profiles
@@ -402,17 +460,16 @@ with tab_customers:
     filtered_cust = df_customers.copy()
     if search_cust:
         filtered_cust = filtered_cust[
-            filtered_cust['full_name'].str.contains(search_cust, case=False) |
-            filtered_cust['country'].str.contains(search_cust, case=False)
+            filtered_cust['Full Name'].str.contains(search_cust, case=False) |
+            filtered_cust['Country'].str.contains(search_cust, case=False)
         ]
     if risk_filter != "All":
-        filtered_cust = filtered_cust[filtered_cust['risk_level'] == risk_filter]
+        filtered_cust = filtered_cust[filtered_cust['Risk Level'] == risk_filter]
 
-    st.dataframe(
-        filtered_cust.style.format({"monthly_vol": "₹{:,.2f}", "risk_score": "{:d}"}),
-        use_container_width=True,
-        height=360
-    )
+    display_cust = filtered_cust.copy()
+    display_cust['Monthly Volume'] = display_cust['Monthly Volume'].apply(lambda x: f"₹{x:,.2f}")
+
+    st.dataframe(display_cust, use_container_width=True, height=360)
 
 # ------------------------------------------------------------------------------
 # TAB 4: Case Management & Audit Trail
@@ -421,12 +478,12 @@ with tab_cases:
     st.subheader("Active Regulatory Investigations & SAR Workflows")
     
     for _, case in df_cases.iterrows():
-        with st.expander(f"{case['case_id']}: {case['subject']} — Priority: {case['priority']}"):
-            st.write(f"**Assigned Investigator**: {case['assigned_to']}")
-            st.write(f"**Investigation Stage**: {case['stage']}")
-            st.write(f"**Statutory Filing Deadline**: {case['filing_deadline']}")
-            st.write(f"**Attached Evidence Items**: {case['evidence_count']}")
-            st.button(f"Generate FIU Filing Package ({case['case_id']})", key=case['case_id'])
+        with st.expander(f"{case['Case ID']}: {case['Subject']} — Priority: {case['Priority']}"):
+            st.write(f"**Assigned Investigator**: {case['Assigned To']}")
+            st.write(f"**Investigation Stage**: {case['Stage']}")
+            st.write(f"**Statutory Filing Deadline**: {case['Filing Deadline']}")
+            st.write(f"**Attached Evidence Items**: {case['Evidence Count']}")
+            st.button(f"Generate FIU Filing Package ({case['Case ID']})", key=case['Case ID'])
 
 # ------------------------------------------------------------------------------
 # Footer
