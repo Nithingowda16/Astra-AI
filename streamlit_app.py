@@ -91,38 +91,52 @@ st.markdown(f"""
     }}
     
     /* Auth Page Wallpaper Container */
-    .stApp {{
-        background: {'#ffffff' if current_theme == 'light' else '#000000'};
+    [data-testid="stAppViewContainer"] {{
+        background-image: url('data:image/png;base64,{current_bg_b64}') !important;
+        background-size: cover !important;
+        background-position: center !important;
+        background-attachment: fixed !important;
+    }}
+    [data-testid="stHeader"] {{
+        background: transparent !important;
     }}
     
-    /* Floating Auth Card */
-    .auth-bg-layer {{
-        position: fixed;
-        inset: 0;
-        background: url('data:image/png;base64,{current_bg_b64}') no-repeat center center fixed;
-        background-size: cover;
-        z-index: 0;
-    }}
-    .auth-bg-overlay {{
-        position: fixed;
-        inset: 0;
-        background: {'radial-gradient(circle at center, rgba(255, 255, 255, 0.4) 0%, rgba(255, 255, 255, 0.8) 100%)' if current_theme == 'light' else 'radial-gradient(circle at center, rgba(0, 0, 0, 0.5) 0%, rgba(0, 0, 0, 0.9) 100%)'};
-        backdrop-filter: blur(4px);
-        z-index: 1;
+    /* Ensure no overlay is blurring content */
+    .auth-bg-layer, .auth-bg-overlay {{
+        display: none !important;
     }}
     
-    .auth-card-frame {{
-        position: relative;
-        z-index: 10;
-        background: {'rgba(255, 255, 255, 0.88)' if current_theme == 'light' else 'rgba(14, 14, 17, 0.85)'};
-        border: 1px solid {'rgba(0, 0, 0, 0.08)' if current_theme == 'light' else 'rgba(255, 255, 255, 0.15)'};
-        border-radius: 28px;
-        padding: 36px 40px;
-        box-shadow: {'0 25px 60px -12px rgba(0, 0, 0, 0.12)' if current_theme == 'light' else '0 30px 60px -12px rgba(0, 0, 0, 0.9)'};
-        backdrop-filter: blur(28px);
-        max-width: 480px;
-        margin: 40px auto;
-        text-align: center;
+    /* Floating Auth Card (Crisp, zero blur) */
+    [data-testid="stForm"] {{
+        background: {'rgba(255, 255, 255, 0.96)' if current_theme == 'light' else 'rgba(14, 14, 17, 0.92)'} !important;
+        border: 1px solid {'rgba(0, 0, 0, 0.08)' if current_theme == 'light' else 'rgba(255, 255, 255, 0.15)'} !important;
+        border-radius: 28px !important;
+        padding: 34px 38px 28px 38px !important;
+        box-shadow: {'0 30px 60px -12px rgba(0, 0, 0, 0.14), 0 0 0 1px rgba(0, 0, 0, 0.04)' if current_theme == 'light' else '0 30px 60px -12px rgba(0, 0, 0, 0.9)'} !important;
+        max-width: 480px !important;
+        margin: 0 auto !important;
+    }}
+    
+    [data-testid="stForm"] [data-testid="stTextInput"] input {{
+        background: {'#ffffff' if current_theme == 'light' else '#18181b'} !important;
+        color: {'#09090b' if current_theme == 'light' else '#ffffff'} !important;
+        border: 1px solid {'#e4e4e7' if current_theme == 'light' else '#27272a'} !important;
+        border-radius: 12px !important;
+        padding: 10px 14px !important;
+        font-size: 0.92rem !important;
+    }}
+    
+    [data-testid="stForm"] button[kind="primary"],
+    [data-testid="stForm"] button[kind="secondary"],
+    [data-testid="stForm"] button {{
+        background: {'#1d1d1f' if current_theme == 'light' else '#ffffff'} !important;
+        color: {'#ffffff' if current_theme == 'light' else '#000000'} !important;
+        border: none !important;
+        border-radius: 9999px !important;
+        padding: 10px 24px !important;
+        font-weight: 700 !important;
+        font-size: 0.95rem !important;
+        box-shadow: {'0 4px 14px rgba(0, 0, 0, 0.2)' if current_theme == 'light' else '0 4px 14px rgba(255, 255, 255, 0.3)'} !important;
     }}
     
     .auth-logo-img {{
@@ -131,15 +145,16 @@ st.markdown(f"""
         object-fit: contain;
         margin: 0 auto 10px auto;
         display: block;
-        filter: drop-shadow(0 4px 16px rgba(19, 214, 214, 0.4));
+        filter: drop-shadow(0 4px 16px rgba(19, 214, 214, 0.45));
     }}
     
     .auth-title-text {{
-        font-size: 1.85rem;
-        font-weight: 700;
-        letter-spacing: -0.035em;
-        color: var(--text-primary);
-        margin: 0 0 18px 0;
+        font-size: 2rem !important;
+        font-weight: 800 !important;
+        letter-spacing: -0.035em !important;
+        color: {'#09090b' if current_theme == 'light' else '#ffffff'} !important;
+        margin: 4px 0 16px 0 !important;
+        text-align: center;
     }}
     
     /* Auth Pill Tabs */
@@ -325,23 +340,17 @@ with top_col2:
 # 6. AUTHENTICATION GATEWAY (SCREENSHOTS 1, 2, 4)
 # ------------------------------------------------------------------------------
 if not st.session_state.authenticated:
-    # Wallpaper Background Layer
-    st.markdown("""
-    <div class="auth-bg-layer"></div>
-    <div class="auth-bg-overlay"></div>
-    """, unsafe_allow_html=True)
-
-    _, auth_center_col, _ = st.columns([1, 1.4, 1])
+    _, auth_center_col, _ = st.columns([1, 1.35, 1])
     
     with auth_center_col:
         st.write("")
         st.write("")
         
-        # Header with Logo & Title
-        logo_html = f'<img src="data:image/png;base64,{current_logo_b64}" class="auth-logo-img" alt="Astra AI" />' if current_logo_b64 else '<span style="font-size: 3rem;">⚡</span>'
+        # Header with Logo & Title (Crisp, High Contrast)
+        logo_html = f'<img src="data:image/png;base64,{current_logo_b64}" class="auth-logo-img" alt="Astra AI" />' if current_logo_b64 else '<span style="font-size: 3.2rem;">⚡</span>'
         
         st.markdown(f"""
-        <div style="text-align: center; margin-bottom: 12px; position: relative; z-index: 10;">
+        <div style="text-align: center; margin-bottom: 16px;">
             {logo_html}
             <h1 class="auth-title-text">Astra AI</h1>
         </div>
