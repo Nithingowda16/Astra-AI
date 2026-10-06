@@ -162,12 +162,14 @@ apple_css = f"""
         margin-right: 0 !important;
     }}
     
-    /* 3. APPLE CURVY BUTTONS & PILLS */
-    div[data-testid="column"] button,
-    .stButton button,
-    [data-testid="stForm"] button,
-    button[kind="primary"],
-    button[kind="secondary"] {{
+    /* 3. APPLE CURVY BUTTONS & PILLS (MAIN AREA) */
+    [data-testid="stMain"] div[data-testid="column"] button,
+    [data-testid="stMain"] .stButton button,
+    [data-testid="stMain"] [data-testid="stForm"] button,
+    .main div[data-testid="column"] button,
+    .main .stButton button,
+    .main [data-testid="stForm"] button,
+    div[data-testid="stMainBlockContainer"] .stButton button {{
         border-radius: 9999px !important;
         font-size: 0.84rem !important;
         font-weight: 600 !important;
@@ -176,9 +178,12 @@ apple_css = f"""
         box-shadow: 0 1px 3px rgba(0, 0, 0, 0.04) !important;
     }}
     
-    /* Secondary Apple Curvy Pills (Default Buttons) */
-    div[data-testid="column"] button:not([kind="primary"]),
-    .stButton button:not([kind="primary"]) {{
+    /* Secondary Apple Curvy Pills (Main Area Only) */
+    [data-testid="stMain"] div[data-testid="column"] button:not([kind="primary"]),
+    [data-testid="stMain"] .stButton button:not([kind="primary"]),
+    .main div[data-testid="column"] button:not([kind="primary"]),
+    .main .stButton button:not([kind="primary"]),
+    div[data-testid="stMainBlockContainer"] .stButton button:not([kind="primary"]) {{
         background-color: var(--apple-card) !important;
         color: var(--apple-text-primary) !important;
         border: 1px solid var(--apple-border) !important;
@@ -187,28 +192,37 @@ apple_css = f"""
         justify-content: flex-start !important;
         margin-bottom: 6px !important;
         width: 100% !important;
+        border-radius: 9999px !important;
     }}
-    div[data-testid="column"] button:not([kind="primary"]) p,
-    .stButton button:not([kind="primary"]) p {{
+    [data-testid="stMain"] div[data-testid="column"] button:not([kind="primary"]) p,
+    [data-testid="stMain"] .stButton button:not([kind="primary"]) p,
+    .main .stButton button:not([kind="primary"]) p,
+    div[data-testid="stMainBlockContainer"] .stButton button:not([kind="primary"]) p {{
         color: var(--apple-text-primary) !important;
         text-align: left !important;
         margin: 0 !important;
     }}
-    div[data-testid="column"] button:not([kind="primary"]):hover,
-    .stButton button:not([kind="primary"]):hover {{
+    [data-testid="stMain"] div[data-testid="column"] button:not([kind="primary"]):hover,
+    [data-testid="stMain"] .stButton button:not([kind="primary"]):hover,
+    .main .stButton button:not([kind="primary"]):hover,
+    div[data-testid="stMainBlockContainer"] .stButton button:not([kind="primary"]):hover {{
         background-color: var(--apple-card-hover) !important;
         border-color: var(--apple-blue) !important;
         transform: translateY(-1px);
     }}
-    div[data-testid="column"] button:not([kind="primary"]):hover p,
-    .stButton button:not([kind="primary"]):hover p {{
+    [data-testid="stMain"] div[data-testid="column"] button:not([kind="primary"]):hover p,
+    [data-testid="stMain"] .stButton button:not([kind="primary"]):hover p,
+    .main .stButton button:not([kind="primary"]):hover p,
+    div[data-testid="stMainBlockContainer"] .stButton button:not([kind="primary"]):hover p {{
         color: var(--apple-blue) !important;
     }}
     
-    /* Primary Apple System Blue Curvy Buttons */
-    button[kind="primary"],
-    [data-testid="stForm"] button,
-    button[key="copilot_send_btn"] {{
+    /* Primary Apple System Blue Curvy Buttons (Main Area) */
+    [data-testid="stMain"] button[kind="primary"],
+    [data-testid="stMain"] [data-testid="stForm"] button,
+    button[key="copilot_send_btn"],
+    .main button[kind="primary"],
+    .main [data-testid="stForm"] button {{
         background-color: var(--apple-blue) !important;
         color: #ffffff !important;
         border: 1px solid var(--apple-blue) !important;
@@ -219,16 +233,18 @@ apple_css = f"""
         justify-content: center !important;
         box-shadow: 0 4px 14px rgba(0, 113, 227, 0.28) !important;
     }}
-    button[kind="primary"] p,
-    [data-testid="stForm"] button p,
-    button[key="copilot_send_btn"] p {{
+    [data-testid="stMain"] button[kind="primary"] p,
+    [data-testid="stMain"] [data-testid="stForm"] button p,
+    button[key="copilot_send_btn"] p,
+    .main button[kind="primary"] p {{
         color: #ffffff !important;
         text-align: center !important;
         white-space: nowrap !important;
     }}
-    button[kind="primary"]:hover,
-    [data-testid="stForm"] button:hover,
-    button[key="copilot_send_btn"]:hover {{
+    [data-testid="stMain"] button[kind="primary"]:hover,
+    [data-testid="stMain"] [data-testid="stForm"] button:hover,
+    button[key="copilot_send_btn"]:hover,
+    .main button[kind="primary"]:hover {{
         background-color: var(--apple-blue-hover) !important;
         transform: translateY(-1px);
     }}
@@ -243,50 +259,147 @@ apple_css = f"""
     [data-testid="stSidebar"] div {{
         color: var(--apple-text-primary);
     }}
+    
+    /* Clean sidebar block spacing */
     [data-testid="stSidebar"] [data-testid="stVerticalBlock"] {{
-        gap: 0.15rem !important;
+        gap: 0.28rem !important;
     }}
+    [data-testid="stSidebar"] [data-testid="stMarkdownContainer"] p {{
+        margin: 0 !important;
+    }}
+    
+    /* Sidebar Section Headers */
+    .sidebar-section-header {{
+        font-size: 0.68rem !important;
+        font-weight: 700 !important;
+        color: var(--apple-text-muted) !important;
+        text-transform: uppercase !important;
+        letter-spacing: 0.08em !important;
+        padding: 14px 10px 4px 10px !important;
+        margin: 0 !important;
+        display: block !important;
+        width: 100% !important;
+        box-sizing: border-box !important;
+        line-height: 1.2 !important;
+    }}
+    
+    /* Inactive Sidebar Buttons - Pure macOS Flat Item (No White Card, No Border!) */
+    [data-testid="stSidebar"] .stButton button,
+    [data-testid="stSidebar"] .stButton button:not([kind="primary"]),
+    [data-testid="stSidebar"] button[data-testid="baseButton-secondary"],
     [data-testid="stSidebar"] button {{
         width: 100% !important;
-        border-radius: 10px !important;
-        padding: 8px 14px !important;
+        border-radius: 8px !important;
+        padding: 8px 12px !important;
         font-size: 0.88rem !important;
         font-weight: 500 !important;
         border: 1px solid transparent !important;
         text-align: left !important;
         justify-content: flex-start !important;
         margin: 0 !important;
+        margin-bottom: 2px !important;
         box-shadow: none !important;
         background: transparent !important;
+        background-color: transparent !important;
+        transition: background-color 0.15s cubic-bezier(0.16, 1, 0.3, 1), color 0.15s ease !important;
     }}
+    [data-testid="stSidebar"] .stButton button div,
+    [data-testid="stSidebar"] .stButton button p,
     [data-testid="stSidebar"] button div,
     [data-testid="stSidebar"] button p {{
         text-align: left !important;
         justify-content: flex-start !important;
         width: 100% !important;
         margin: 0 !important;
+        color: var(--apple-text-primary) !important;
+        font-weight: 500 !important;
     }}
-    [data-testid="stSidebar"] button[kind="secondary"] {{
-        background: transparent !important;
-        color: var(--apple-text-secondary) !important;
+    
+    /* Inactive Sidebar Buttons Hover */
+    [data-testid="stSidebar"] .stButton button:hover,
+    [data-testid="stSidebar"] .stButton button:not([kind="primary"]):hover,
+    [data-testid="stSidebar"] button[data-testid="baseButton-secondary"]:hover,
+    [data-testid="stSidebar"] button:hover {{
+        background: {'rgba(0, 0, 0, 0.05)' if current_theme == 'light' else 'rgba(255, 255, 255, 0.08)'} !important;
+        background-color: {'rgba(0, 0, 0, 0.05)' if current_theme == 'light' else 'rgba(255, 255, 255, 0.08)'} !important;
+        border-color: transparent !important;
+        color: var(--apple-text-primary) !important;
+        transform: none !important;
     }}
-    [data-testid="stSidebar"] button[kind="secondary"] p {{
-        color: var(--apple-text-secondary) !important;
-    }}
-    [data-testid="stSidebar"] button[kind="secondary"]:hover {{
-        background: var(--apple-card-hover) !important;
+    [data-testid="stSidebar"] .stButton button:hover p,
+    [data-testid="stSidebar"] button:hover p {{
         color: var(--apple-text-primary) !important;
     }}
-    [data-testid="stSidebar"] button[kind="secondary"]:hover p {{
-        color: var(--apple-text-primary) !important;
-    }}
-    [data-testid="stSidebar"] button[kind="primary"] {{
+    
+    /* Active Sidebar Button - Apple System Blue macOS Pill */
+    [data-testid="stSidebar"] .stButton button[kind="primary"],
+    [data-testid="stSidebar"] button[data-testid="baseButton-primary"] {{
         background: var(--apple-blue) !important;
+        background-color: var(--apple-blue) !important;
+        color: #ffffff !important;
+        border: 1px solid var(--apple-blue) !important;
+        border-radius: 8px !important;
+        font-weight: 600 !important;
+        box-shadow: 0 2px 8px rgba(0, 113, 227, 0.28) !important;
+        transform: none !important;
+    }}
+    [data-testid="stSidebar"] .stButton button[kind="primary"] p,
+    [data-testid="stSidebar"] .stButton button[kind="primary"] div,
+    [data-testid="stSidebar"] button[data-testid="baseButton-primary"] p,
+    [data-testid="stSidebar"] button[data-testid="baseButton-primary"] div {{
         color: #ffffff !important;
         font-weight: 600 !important;
+        text-align: left !important;
     }}
-    [data-testid="stSidebar"] button[kind="primary"] p {{
+    [data-testid="stSidebar"] .stButton button[kind="primary"]:hover,
+    [data-testid="stSidebar"] button[data-testid="baseButton-primary"]:hover {{
+        background: var(--apple-blue-hover) !important;
+        background-color: var(--apple-blue-hover) !important;
         color: #ffffff !important;
+        transform: none !important;
+    }}
+    [data-testid="stSidebar"] .stButton button[kind="primary"]:hover p,
+    [data-testid="stSidebar"] button[data-testid="baseButton-primary"]:hover p {{
+        color: #ffffff !important;
+    }}
+
+    /* Sign Out Action Button in Sidebar */
+    [data-testid="stSidebar"] [data-testid="stVerticalBlock"] > div:last-child button,
+    [data-testid="stSidebar"] button[key="sidebar_logout_btn"],
+    button[key="sidebar_logout_btn"] {{
+        background: transparent !important;
+        background-color: transparent !important;
+        border: 1px solid rgba(255, 59, 48, 0.28) !important;
+        color: #ff3b30 !important;
+        border-radius: 8px !important;
+        padding: 7px 12px !important;
+        font-size: 0.82rem !important;
+        font-weight: 600 !important;
+        text-align: center !important;
+        justify-content: center !important;
+        margin-top: 4px !important;
+        margin-bottom: 12px !important;
+        box-shadow: none !important;
+        transition: all 0.15s ease !important;
+    }}
+    [data-testid="stSidebar"] [data-testid="stVerticalBlock"] > div:last-child button p,
+    button[key="sidebar_logout_btn"] p {{
+        color: #ff3b30 !important;
+        text-align: center !important;
+        width: 100% !important;
+        font-weight: 600 !important;
+    }}
+    [data-testid="stSidebar"] [data-testid="stVerticalBlock"] > div:last-child button:hover,
+    button[key="sidebar_logout_btn"]:hover {{
+        background: rgba(255, 59, 48, 0.08) !important;
+        background-color: rgba(255, 59, 48, 0.08) !important;
+        border-color: #ff3b30 !important;
+        color: #ff3b30 !important;
+        transform: none !important;
+    }}
+    [data-testid="stSidebar"] [data-testid="stVerticalBlock"] > div:last-child button:hover p,
+    button[key="sidebar_logout_btn"]:hover p {{
+        color: #ff3b30 !important;
     }}
     
     /* 5. APPLE SQUIRCLE CARDS */
@@ -541,7 +654,7 @@ with st.sidebar:
     </div>
     """)
     
-    render_html('<div style="font-size: 0.7rem; font-weight: 700; color: var(--apple-text-muted); text-transform: uppercase; letter-spacing: 0.08em; margin: 8px 0 4px 0;">OPERATIONS</div>')
+    render_html('<div class="sidebar-section-header" style="padding-top: 6px;">OPERATIONS</div>')
     
     nav_ops = [
         ("Dashboard", "Dashboard"),
@@ -556,7 +669,7 @@ with st.sidebar:
             st.session_state.active_nav = key
             st.rerun()
 
-    render_html('<div style="font-size: 0.7rem; font-weight: 700; color: var(--apple-text-muted); text-transform: uppercase; letter-spacing: 0.08em; margin: 14px 0 4px 0;">AI & INTELLIGENCE</div>')
+    render_html('<div class="sidebar-section-header" style="padding-top: 18px;">AI & INTELLIGENCE</div>')
     
     if st.button("Regulatory Rules", key="nav_rules", use_container_width=True, type="primary" if st.session_state.active_nav == "Regulatory" else "secondary"):
         st.session_state.active_nav = "Regulatory"
@@ -566,18 +679,34 @@ with st.sidebar:
         st.session_state.active_nav = "Copilot"
         st.rerun()
 
-    st.write("")
-    st.write("")
+    # User Profile Box (macOS / Apple Identity Card)
+    raw_user_name = getattr(st.session_state, "user_name", "Senior Risk Officer")
+    raw_user_role = getattr(st.session_state, "user_role", "Senior Risk Officer")
     
-    # User Profile Box
-    user_name = getattr(st.session_state, "user_name", "Senior Risk Officer")
-    user_role = getattr(st.session_state, "user_role", "Senior Risk Officer")
+    # Avoid repeating the exact same text if name equals role
+    if raw_user_name == raw_user_role or not raw_user_name or raw_user_name == "Senior Risk Officer":
+        display_name = "Alexander Wright"
+        display_role = "Senior Risk Officer"
+    else:
+        display_name = raw_user_name
+        display_role = raw_user_role
+        
+    initials = "".join([part[0] for part in display_name.split()[:2]]).upper() if display_name else "RO"
+    
     render_html(f"""
-    <div style="background: var(--apple-card); border: 1px solid var(--apple-border); border-radius: 14px; padding: 12px; margin-top: 14px;">
-        <div style="font-size: 0.85rem; font-weight: 700; color: var(--apple-text-primary);">{user_name}</div>
-        <div style="font-size: 0.72rem; color: var(--apple-text-muted); margin-top: 2px;">{user_role}</div>
-        <div style="margin-top: 6px;">
-            <span style="font-size: 0.65rem; font-weight: 800; background: rgba(0, 113, 227, 0.12); color: var(--apple-blue); padding: 2px 7px; border-radius: 6px; letter-spacing: 0.04em;">ANALYST VERIFIED</span>
+    <div style="background: var(--apple-card); border: 1px solid var(--apple-border); border-radius: 12px; padding: 12px 14px; margin-top: 24px; margin-bottom: 8px; box-shadow: 0 1px 3px rgba(0,0,0,0.03);">
+        <div style="display: flex; align-items: center; gap: 10px;">
+            <div style="width: 32px; height: 32px; border-radius: 50%; background: rgba(0, 113, 227, 0.12); color: var(--apple-blue); display: flex; align-items: center; justify-content: center; font-size: 0.75rem; font-weight: 700; flex-shrink: 0;">
+                {initials}
+            </div>
+            <div style="min-width: 0; flex: 1;">
+                <div style="font-size: 0.82rem; font-weight: 700; color: var(--apple-text-primary); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; line-height: 1.2;">{display_name}</div>
+                <div style="font-size: 0.7rem; color: var(--apple-text-muted); margin-top: 2px; line-height: 1.2;">{display_role}</div>
+            </div>
+        </div>
+        <div style="margin-top: 9px; padding-top: 8px; border-top: 1px solid var(--apple-border-subtle); display: flex; align-items: center; justify-content: space-between;">
+            <span style="font-size: 0.6rem; font-weight: 800; background: rgba(52, 199, 89, 0.12); color: var(--apple-green); padding: 2px 7px; border-radius: 5px; letter-spacing: 0.04em;">ANALYST VERIFIED</span>
+            <span style="font-size: 0.62rem; color: var(--apple-text-muted); font-weight: 600;">TIER 1 AML</span>
         </div>
     </div>
     """)
